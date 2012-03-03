@@ -130,6 +130,18 @@ class Lepistent(object):
         return soup
         
     @classmethod
+    def getURLFromImageTag(cls, img_tag):
+        '''
+        Gets the URL of the image (jpg, png or gif)
+        @param cls: This class to reference class variables.
+        @param img_tag: The image tag that contains the url in its src attribute.
+        '''
+        src_attr = img_tag['src']
+        url = re.search('http:\/\/(?!.*?http:\/\/).*\.(jpg|png|gif)', src_attr).group(0)
+        
+        return url 
+    
+    @classmethod
     def getURLFromTagContent(cls, tag_content):
         '''
         Gets the URL of a link ('<a>' tag) from an HTML tag.
