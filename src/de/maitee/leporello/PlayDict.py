@@ -6,6 +6,7 @@ Created on Feb 27, 2012
 @author: kms
 '''
 # Standard libraries
+import re
 # Local libraries
 from PerformanceDict import Performance
 from LeporelloAssistent import Lepistent
@@ -184,6 +185,15 @@ class Play(dict, Lepistent):
         further_info_paragraphs = self._getParagraphsForContent('Weitere Texte')
         self.further_info = self._concatenatingStringsFromParagraphs(further_info_paragraphs)
     
+    def _setPhotos(self):
+        try:
+            img_tags = self.play_details.find('div', {"class": "thumbnails"}).findAll('img')
+            for img_tag in img_tags:
+                img_url = Lepistent.getURLFromImageTag(img_tag)
+                self.photos.append(img_url)
+        except AttributeError as attrerr:
+            print('Could not find img tags due to: ' + str(attrerr))
+            
     # 'Public' methods:
     def setPlayDetails(self, soup):
         self.play_details = soup
@@ -193,7 +203,8 @@ class Play(dict, Lepistent):
 #        print self.critics
         self._setFurtherInfo()
 #        print self.further_info
-#        self.photos = self._getPhotos()
+        self._setPhotos()
+#        print self.photos
 #        self.sponsors = self._getSponsors()
 #        self.cast = self._getCast()
         
