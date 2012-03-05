@@ -7,6 +7,7 @@ Created on Feb 27, 2012
 '''
 # Standard libraries
 import re
+import itertools
 # Local libraries
 from PerformanceDict import Performance
 from LeporelloAssistent import Lepistent
@@ -19,12 +20,12 @@ class Play(dict, Lepistent):
     classdocs
     '''
 
-    def __init__(self, play_item):
+    def __init__(self, play_item_soup):
         '''
         Constructor
         '''
         dict.__init__({})
-        self.play_item = play_item
+        self.play_item_soup = play_item_soup
         self.title = self._setTitle()
         self.subtitle = self._setSubtitle()
         self.location = self._setLocation()
@@ -44,25 +45,25 @@ class Play(dict, Lepistent):
         self.cast = dict()
         self.sponsors = list()
         
-        self.play_details = None
+        self.play_detail_soup = None
         
     # 'Private' methods:
     def _setTitle(self):
         try:
-            title_string = self.play_item.h5.a.string
+            title_string = self.play_item_soup.h5.a.string
             title = title_string.lstrip().rstrip()
         except:
-            print('Could not find any title in play_item: ' + str(self.play_item))
+            print('Could not find any title in play_item_soup: ' + str(self.play_item_soup))
             title = NOT_AVAILABLE
             
         return title
     
     def _setSubtitle(self):
         try:
-            subtitle_string = self.play_item.p.string
+            subtitle_string = self.play_item_soup.p.string
             subtitle = subtitle_string.lstrip().rstrip()
         except:
-            print('Could not find any subtitle in play_item: ' + str(self.play_item))
+            print('Could not find any subtitle in play_item_soup: ' + str(self.play_item_soup))
             subtitle = NOT_AVAILABLE
             
         return subtitle
@@ -70,11 +71,11 @@ class Play(dict, Lepistent):
     def _setLocation(self):
         try:
             # location_string = "Neues Schauspielhaus / Termine: 10. | 14. | 18. September 2011, 01. | 16. | 22. Oktober 2011, 18. | 29. November 2011, 08. | 11. | 16. | 29. Dezember 2011, 27. Januar 2012, 03. | 10. | 15. | 26. Februar 2012, 27. März 2012"    
-            location_string = self.play_item.findAll('p')[1].span.nextSibling
+            location_string = self.play_item_soup.findAll('p')[1].span.nextSibling
             (location_part, seperator, dates_part) = location_string.partition('/')
             location = location_part.lstrip().rstrip()
         except:
-            print('Could not find any location in play_item: ' + str(self.play_item))
+            print('Could not find any location in play_item_soup: ' + str(self.play_item_soup))
             location = NOT_AVAILABLE
         
         return location
@@ -82,7 +83,7 @@ class Play(dict, Lepistent):
     def _setDates(self):
         dates = list()
         try:
-            dates_string = self.play_item.findAll('p')[1].span.nextSibling
+            dates_string = self.play_item_soup.findAll('p')[1].span.nextSibling
             # dates_string = "Neues Schauspielhaus / Termine: 10. | 14. | 18. September 2011, 01. | 16. | 22. Oktober 2011, 18. | 29. November 2011, 08. | 11. | 16. | 29. Dezember 2011, 27. Januar 2012, 03. | 10. | 15. | 26. Februar 2012, 27. März 2012"
             (location_part, seperator, dates_part) = dates_string.partition(':') 
             # dates_per_month = "[' 10. | 14. | 18. September 2011', ' 01. | 16. | 22. Oktober 2011', ' 18. | 29. November 2011', ' 08. | 11. | 16. | 29. Dezember 2011', ' 27. Januar 2012', ' 03. | 10. | 15. | 26. Februar 2012', ' 27. M\xc3\xa4rz 2012']"
@@ -105,7 +106,7 @@ class Play(dict, Lepistent):
                     
                 dates.append(raw_dates[-1])
         except:
-            print('Could not find any dates in play_item: ' + str(self.play_item))
+            print('Could not find any dates in play_item_soup: ' + str(self.play_item_soup))
         
         return dates 
     
@@ -124,11 +125,11 @@ class Play(dict, Lepistent):
     
     def _getPerformanceTypeOfFirstPerformance(self):
         try:
-            performance_type_string = self.play_item.div.h6.string
+            performance_type_string = self.play_item_soup.div.h6.string
             # performance_type_string = "<h6>Premiere</h6>"
             performance_type = performance_type_string.lstrip().rstrip()
         except:
-            print('Could not find any performance type in play_item: ' + str(self.play_item))
+            print('Could not find any performance type in play_item_soup: ' + str(self.play_item_soup))
             performance_type = NOT_AVAILABLE
             
         return performance_type
@@ -138,7 +139,7 @@ class Play(dict, Lepistent):
 #    def _getPhotoURLLinksFrom(self, div):
     
     def _getParagraphsForContent(self, content):
-        paragraphs = self.play_details.find(text=content).findNext('div', {"class": 'toggleable-content-open'}).findAll('p')
+        paragraphs = self.play_detail_soup.find(text=content).findNext('div', {"class": 'toggleable-content-open'}).findAll('p')
         
         return paragraphs;
     
@@ -187,16 +188,45 @@ class Play(dict, Lepistent):
     
     def _setPhotos(self):
         try:
-            img_tags = self.play_details.find('div', {"class": "thumbnails"}).findAll('img')
+            img_tags = self.play_detail_soup.find('div', {"class": "thumbnails"}).findAll('img')
             for img_tag in img_tags:
                 img_url = Lepistent.getURLFromImageTag(img_tag)
                 self.photos.append(img_url)
         except AttributeError as attrerr:
             print('Could not find img tags due to: ' + str(attrerr))
+    
+    def _setSponsors(self):
+        try:
+            img_tags = self.play_detail_soup.find('div', {"class": "sponsors clearfix"})
+            for img_tag in img_tags:
+                img_url = Lepistent.getURLFromImageTag(img_tag)
+                self.sponsors.append(img_url)
+        except AttributeError as attrerr:
+            print('Could not find img tags due to: ' + str(attrerr))
+    
+    def _setCast(self):
+        try:
+            artist_items = []
+            artist_item_tags = self.play_detail_soup.findAll('h4', text=re.compile('Besetzung'))[0].parent.findNextSiblings(['span', 'a', 'br'])
+            print artist_item_tags
+            print (str(artist_item_tags[0]) == '<br />')
+            print itertools.groupby(artist_item_tags, lambda x: str(x)=='<br />')
+#            print [artist_item_tags(x[1]) for x in itertools.groupby(artist_item_tags, lambda x: str(x)=='<br />') if not x[0]]
+#            artist_item = 
+#            for tag in artist_item_tags:
+#                if tag.find('br'):
+#                    continue
+#                else:
+                    
+#            artist_item = artist_item_tags[0]
             
+#            print artist_item_tags
+        except AttributeError as attrerr:
+            print('Could not find img tags due to: ' + str(attrerr))
+    
     # 'Public' methods:
     def setPlayDetails(self, soup):
-        self.play_details = soup
+        self.play_detail_soup = soup
         self._setSummary()
 #        print self.summary
         self._setCritics()
@@ -205,6 +235,8 @@ class Play(dict, Lepistent):
 #        print self.further_info
         self._setPhotos()
 #        print self.photos
-#        self.sponsors = self._getSponsors()
-#        self.cast = self._getCast()
+        self._setSponsors()
+#        print self.sponsors
+        self._setCast()
+#        print self.cast
         
