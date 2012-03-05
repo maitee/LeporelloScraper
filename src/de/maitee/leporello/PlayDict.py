@@ -7,7 +7,7 @@ Created on Feb 27, 2012
 '''
 # Standard libraries
 import re
-import itertools
+from itertools import groupby
 # Local libraries
 from PerformanceDict import Performance
 from LeporelloAssistent import Lepistent
@@ -53,7 +53,7 @@ class Play(dict, Lepistent):
             title_string = self.play_item_soup.h5.a.string
             title = title_string.lstrip().rstrip()
         except:
-            print('Could not find any title in play_item_soup: ' + str(self.play_item_soup))
+            print('>>>>>>>>>> Could not find any title in play_item_soup: ' + str(self.play_item_soup))
             title = NOT_AVAILABLE
             
         return title
@@ -63,7 +63,7 @@ class Play(dict, Lepistent):
             subtitle_string = self.play_item_soup.p.string
             subtitle = subtitle_string.lstrip().rstrip()
         except:
-            print('Could not find any subtitle in play_item_soup: ' + str(self.play_item_soup))
+            print('>>>>>>>>>> Could not find any subtitle in play_item_soup: ' + str(self.play_item_soup))
             subtitle = NOT_AVAILABLE
             
         return subtitle
@@ -75,7 +75,7 @@ class Play(dict, Lepistent):
             (location_part, seperator, dates_part) = location_string.partition('/')
             location = location_part.lstrip().rstrip()
         except:
-            print('Could not find any location in play_item_soup: ' + str(self.play_item_soup))
+            print('>>>>>>>>>> Could not find any location in play_item_soup: ' + str(self.play_item_soup))
             location = NOT_AVAILABLE
         
         return location
@@ -106,7 +106,7 @@ class Play(dict, Lepistent):
                     
                 dates.append(raw_dates[-1])
         except:
-            print('Could not find any dates in play_item_soup: ' + str(self.play_item_soup))
+            print('>>>>>>>>>> Could not find any dates in play_item_soup: ' + str(self.play_item_soup))
         
         return dates 
     
@@ -129,7 +129,7 @@ class Play(dict, Lepistent):
             # performance_type_string = "<h6>Premiere</h6>"
             performance_type = performance_type_string.lstrip().rstrip()
         except:
-            print('Could not find any performance type in play_item_soup: ' + str(self.play_item_soup))
+            print('>>>>>>>>>> Could not find any performance type in play_item_soup: ' + str(self.play_item_soup))
             performance_type = NOT_AVAILABLE
             
         return performance_type
@@ -193,7 +193,7 @@ class Play(dict, Lepistent):
                 img_url = Lepistent.getURLFromImageTag(img_tag)
                 self.photos.append(img_url)
         except AttributeError as attrerr:
-            print('Could not find img tags due to: ' + str(attrerr))
+            print('>>>>>>>>>> Could not find img tags due to: ' + str(attrerr))
     
     def _setSponsors(self):
         try:
@@ -202,27 +202,40 @@ class Play(dict, Lepistent):
                 img_url = Lepistent.getURLFromImageTag(img_tag)
                 self.sponsors.append(img_url)
         except AttributeError as attrerr:
-            print('Could not find img tags due to: ' + str(attrerr))
+            print('>>>>>>>>>> Could not find img tags due to: ' + str(attrerr))
     
     def _setCast(self):
         try:
-            artist_items = []
             artist_item_tags = self.play_detail_soup.findAll('h4', text=re.compile('Besetzung'))[0].parent.findNextSiblings(['span', 'a', 'br'])
-            print artist_item_tags
-            print (str(artist_item_tags[0]) == '<br />')
-            print itertools.groupby(artist_item_tags, lambda x: str(x)=='<br />')
-#            print [artist_item_tags(x[1]) for x in itertools.groupby(artist_item_tags, lambda x: str(x)=='<br />') if not x[0]]
-#            artist_item = 
-#            for tag in artist_item_tags:
-#                if tag.find('br'):
-#                    continue
-#                else:
-                    
-#            artist_item = artist_item_tags[0]
+            artist_items = [list(tag[1]) for tag in groupby(artist_item_tags, lambda tag: str(tag) == '<br />') if not tag[0]]
+            print artist_items
             
-#            print artist_item_tags
+            artist = artist_items[0]
+            
+            role = ''
+            full_name = ''
+            url = ''
+            print artist
+            for element in artist:
+                if 'class="eventDetailPersonRole"' in str(element):
+                    try:
+                        role = element.string.split(':')[0]
+                        print role
+                    except:
+                        print('>>>>>>>>>> Could not extract a role from "' + str(artist) + '" due to missing ":". ' + 
+                              'This probably means that this artist does not have a role')
+                elif 'class="eventDetailPersonLink"' in str(element):
+                    full_name = element.string
+                    url = Lepistent.URL_PREFIX + re.search('href=\"(.+?)\"', str(element)).group(1)
+                    print url
+                    print full_name
+                elif 'class="eventDetailPerson"' in str(element):
+                    full_name = element.string
+                    print full_name
+            
+            
         except AttributeError as attrerr:
-            print('Could not find img tags due to: ' + str(attrerr))
+            print('>>>>>>>>>> Could not find img tags due to: ' + str(attrerr))
     
     # 'Public' methods:
     def setPlayDetails(self, soup):
