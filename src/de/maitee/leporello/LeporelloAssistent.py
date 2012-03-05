@@ -42,7 +42,8 @@ class Lepistent(object):
     KEY_THEATRE = 'theatre'
     KEY_URL_PREFIX = 'URL_ROOT_PREFIX'
     
-    REL_PATH_DOWNLOADS_FOLDER = '../../../../downloads/'
+    REL_PATH_DOWNLOADS = '../../../../downloads/'
+    REL_PATH_PLAYS_FOLDER = '../../../../downloads/plays/'
     
     STRING_NOT_AVAILABLE = 'n/a'
     
@@ -70,13 +71,16 @@ class Lepistent(object):
         @param soup: The soup to pickle.
         @param fileName: The file name under which the soup should be pickled.
         '''
+        # Extracting the folder_path from the file_path
+        # file_paty: '../../../../downloads/plays/AltArmArbeitslos.html' > folder_paty: '../../../../downloads/plays/' 
+        folder_path =  file_path.rsplit('/', 1)[0]
         # Create 'downloads' directory for saving files if the directory does not exist.
-        if not os.path.isdir(cls.REL_PATH_DOWNLOADS_FOLDER):
+        if not os.path.isdir(folder_path):
             try:
-                os.mkdir(cls.REL_PATH_DOWNLOADS_FOLDER)
+                os.makedirs(folder_path)
             except OSError as oserr:
                 print('OSError: ' + str(oserr))
-                print('Could not pickle soup because creating directory failed: ' + cls.REL_PATH_DOWNLOADS_FOLDER)
+                print('Could not pickle soup because creating directory failed: ' + folder_path)
                 return
         
         # Only pickle file if the file does not exist.
