@@ -58,9 +58,9 @@ def getPlays(leporello_info):
     Lepistent.setInfo(leporello_info)
     
     leporelloFileNameOnDisk = Lepistent.createFilePath(
-                                            Lepistent.REL_PATH_DOWNLOADS, 
+                                            Lepistent.REL_PATH_DOWNLOADS_FOLDER, 
                                             Lepistent.FILE_NAME_LEPORELLO, 
-                                            '.leporello')
+                                            'leporello')
     soup = Lepistent.getSoup(leporello_info[URL_LEPORELLO], 
                              leporelloFileNameOnDisk)
     playItems = Lepistent.getTagsByClass(soup, 'div', 
@@ -74,7 +74,7 @@ def getPlays(leporello_info):
     play.file_name_on_disk = Lepistent.createFilePath(
                                             Lepistent.REL_PATH_PLAYS_FOLDER, 
                                             play.title, 
-                                            '.html')
+                                            'html')
     soup = Lepistent.getSoup(play.link, play.file_name_on_disk)
     play.setPlayDetails(soup)
     
@@ -84,9 +84,9 @@ def getPlays(leporello_info):
 #        play = Play(playItem)
 #        play.link = Lepistent.getURLFromTagContent(playItem)
 #        play.file_name_on_disk = Lepistent.createFilePath(
-#                                            Lepistent.REL_PATH_DOWNLOADS_FOLDER, 
+#                                            Lepistent.REL_PATH_PLAYS_FOLDER, 
 #                                            play.title, 
-#                                            '.html')
+#                                            'html')
 #        soup = Lepistent.getSoup(play.link, play.file_name_on_disk)
 #        plays[play.title] = play
     
