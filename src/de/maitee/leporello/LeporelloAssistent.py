@@ -42,8 +42,9 @@ class Lepistent(object):
     KEY_THEATRE = 'theatre'
     KEY_URL_PREFIX = 'URL_ROOT_PREFIX'
     
-    REL_PATH_DOWNLOADS = '../../../../downloads/'
+    REL_PATH_DOWNLOADS_FOLDER = '../../../../downloads/'
     REL_PATH_PLAYS_FOLDER = '../../../../downloads/plays/'
+    REL_PATH_ARTISTS_FOLDER = '../../../../downloads/artists/'
     
     STRING_NOT_AVAILABLE = 'n/a'
     
@@ -176,8 +177,13 @@ class Lepistent(object):
         @param suffix: The suffix of the file name, e.g. '.html', '.txt', ... .
         @return: (string) file_path - A formatted file path that can be used for pickling a file.
         '''
+        # TODO: Implement a condition instead of exception to handle correct method according 
+        # to the python version. The UNICODE flag is only supported for python >= 2.7
         # Removing all non-alphanumeric characters and appending the suffix.
-        file_path = path + re.sub(r"\W+", "", name) + suffix
+        try:
+            file_path = path + re.sub(r"\W+", "", name, 0, re.UNICODE) + '.' + suffix
+        except TypeError as terr:
+            file_path = path + re.sub(r"\W+", "", name) + '.' + suffix
         
         return file_path
 
