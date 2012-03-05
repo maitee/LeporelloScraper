@@ -15,6 +15,43 @@ from LeporelloAssistent import Lepistent
 # Default value for unavailable keys.
 NOT_AVAILABLE = 'n/a'
 
+# Member names of producer's cast.
+PRODUCERS_CAST = [
+                  'Ausstattung', 
+                  'Bühne', 
+                  'Bühne + Kostüme', 
+                  'Bühne und Kostüm', 
+                  'Bühne und Kostüme', 
+                  'Bühnenbild', 
+                  'Chor', 
+                  'Choreographie', 
+                  'Chorleitung', 
+                  'Dramaturgie', 
+                  'Dramaturgie/Bearbeitung', 
+                  'Grundgestaltung Brauhauskeller', 
+                  'Inszenierung', 
+                  'Inszenierung/ Choreographie/ Video', 
+                  'Kinderchor', 
+                  'Konzeption/ Inszenierung', 
+                  'Konzeption/ Video', 
+                  'Kostüm', 
+                  'Kostüme', 
+                  'Kostüme und Puppen', 
+                  'Künstlerische Mitarbeit', 
+                  'Musik', 
+                  'Musikalische Leitung', 
+                  'Opernchor + Extrachor Theater Bremen', 
+                  'Puppentraining', 
+                  'Regie', 
+                  'Regie und Bühne', 
+                  'Regie/ Bühne', 
+                  'Regieassistenz', 
+                  'Theaterpädagogik', 
+                  'Video', 
+                  'Videorealisation', 
+                  'Visuelle Gestaltung', 
+                  ]
+
 class Play(dict, Lepistent):
     '''
     classdocs
