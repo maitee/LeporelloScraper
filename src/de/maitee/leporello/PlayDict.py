@@ -9,8 +9,9 @@ Created on Feb 27, 2012
 import re
 from itertools import groupby
 # Local libraries
-from PerformanceDict import Performance
 from LeporelloAssistent import Lepistent
+from ArtistDict import Artist
+from PerformanceDict import Performance
 
 # Default value for unavailable keys.
 NOT_AVAILABLE = 'n/a'
@@ -248,7 +249,7 @@ class Play(dict, Lepistent):
             print('>>>>>>>>>> Could not find img tags due to: ' + str(attrerr))
     
     def _setCast(self):
-        try:
+#        try:
             artist_item_tags = self.play_detail_soup.findAll('h4', text=re.compile('Besetzung'))[0].parent.findNextSiblings(['span', 'a', 'br'])
             artist_items = [list(tag[1]) for tag in groupby(artist_item_tags, lambda tag: str(tag) == '<br />') if not tag[0]]
             print artist_items
@@ -275,17 +276,22 @@ class Play(dict, Lepistent):
                 elif 'class="eventDetailPerson"' in str(element):
                     full_name = element.string
                     print full_name
-                    
+            
+            soup = ''    
             if url:
                 # TODO:
                 print url
-#                soup = Lepistent.getSoup(url, file_path)
+                file_path = Lepistent.createFilePath(Lepistent.REL_PATH_ARTISTS_FOLDER, full_name, 'html')
+                soup = Lepistent.getSoup(url, file_path)
+                
+            artist = Artist(soup, full_name)
+                
             if role and role in PRODUCERS_CAST:
                 print role
             
-        except AttributeError as attrerr:
-            print('>>>>>>>>>> Could not set task due to: See next line.')
-            print('>>>>>>>>>> Could not find img tags due to: ' + str(attrerr))
+#        except AttributeError as attrerr:
+#            print('>>>>>>>>>> Could not set cast due to: See next line.')
+#            print('>>>>>>>>>> Could not find img tags due to: ' + str(attrerr))
     
     # 'Public' methods:
     def setPlayDetails(self, soup):

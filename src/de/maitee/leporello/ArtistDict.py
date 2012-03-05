@@ -15,8 +15,8 @@ class Artist(dict):
         Constructor
         '''
         dict.__init__({})
-        self.artist_item_soup = self._setDetails(artist_item_soup)
-        self.full_name = self._setName(name)
+        self.artist_item_soup = artist_item_soup
+        self.name = self._setName(name)
         self.first_name = str()
         self.middle_name = str()
         self.last_name = str()
@@ -29,21 +29,26 @@ class Artist(dict):
         # 'Private' methods:
         def _setName(self, name):
             # TODO:
+#            name = 'name'
+            print('in _setName(' + name + ')')
             
             return name
         
         def _setPhoto(self):
             # TODO:
+            print('in _setName(' + [] + ')')
             
             self.photo = ''
         
         def _setBiography(self):
             # TODO:
+            print('in _setName(' + '' + ')')
             
             self.biography = ''
             
         def _setAppearances(self):
             # TODO:
+            print('in _setName(' + [] + ')')
             
             self.appearances = list()
         
