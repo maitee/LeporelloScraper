@@ -91,6 +91,7 @@ class Play(dict, Lepistent):
             title = title_string.lstrip().rstrip()
         except:
             print('>>>>>>>>>> Could not find any title in play_item_soup: ' + str(self.play_item_soup))
+            print('>>>>>>>>>> Setting title to: ' + NOT_AVAILABLE)
             title = NOT_AVAILABLE
             
         return title
@@ -101,6 +102,7 @@ class Play(dict, Lepistent):
             subtitle = subtitle_string.lstrip().rstrip()
         except:
             print('>>>>>>>>>> Could not find any subtitle in play_item_soup: ' + str(self.play_item_soup))
+            print('>>>>>>>>>> Setting subtitle to: ' + NOT_AVAILABLE)
             subtitle = NOT_AVAILABLE
             
         return subtitle
@@ -113,6 +115,7 @@ class Play(dict, Lepistent):
             location = location_part.lstrip().rstrip()
         except:
             print('>>>>>>>>>> Could not find any location in play_item_soup: ' + str(self.play_item_soup))
+            print('>>>>>>>>>> Setting location to: ' + NOT_AVAILABLE)
             location = NOT_AVAILABLE
         
         return location
@@ -144,6 +147,7 @@ class Play(dict, Lepistent):
                 dates.append(raw_dates[-1])
         except:
             print('>>>>>>>>>> Could not find any dates in play_item_soup: ' + str(self.play_item_soup))
+            print('>>>>>>>>>> Setting dates to an empty list')
         
         return dates 
     
@@ -230,6 +234,7 @@ class Play(dict, Lepistent):
                 img_url = Lepistent.getURLFromImageTag(img_tag)
                 self.photos.append(img_url)
         except AttributeError as attrerr:
+            print('>>>>>>>>>> Could not set photos due to: See next line.')
             print('>>>>>>>>>> Could not find img tags due to: ' + str(attrerr))
     
     def _setSponsors(self):
@@ -239,6 +244,7 @@ class Play(dict, Lepistent):
                 img_url = Lepistent.getURLFromImageTag(img_tag)
                 self.sponsors.append(img_url)
         except AttributeError as attrerr:
+            print('>>>>>>>>>> Could not set sponsors due to: See next line.')
             print('>>>>>>>>>> Could not find img tags due to: ' + str(attrerr))
     
     def _setCast(self):
@@ -247,20 +253,20 @@ class Play(dict, Lepistent):
             artist_items = [list(tag[1]) for tag in groupby(artist_item_tags, lambda tag: str(tag) == '<br />') if not tag[0]]
             print artist_items
             
-            artist = artist_items[0]
+            artist_data = artist_items[0]
             
             role = ''
             full_name = ''
             url = ''
-            print artist
-            for element in artist:
+            print artist_data
+            for element in artist_data:
                 if 'class="eventDetailPersonRole"' in str(element):
                     try:
                         role = element.string.split(':')[0]
                         print role
                     except:
-                        print('>>>>>>>>>> Could not extract a role from "' + str(artist) + '" due to missing ":". ' + 
-                              'This probably means that this artist does not have a role')
+                        print('>>>>>>>>>> Could not extract a role from "' + str(artist_data) + '" due to missing ":". ' + 
+                              'This probably means that this artist_data does not have a role')
                 elif 'class="eventDetailPersonLink"' in str(element):
                     full_name = element.string
                     url = Lepistent.URL_PREFIX + re.search('href=\"(.+?)\"', str(element)).group(1)
@@ -269,9 +275,16 @@ class Play(dict, Lepistent):
                 elif 'class="eventDetailPerson"' in str(element):
                     full_name = element.string
                     print full_name
-            
+                    
+            if url:
+                # TODO:
+                print url
+#                soup = Lepistent.getSoup(url, file_path)
+            if role and role in PRODUCERS_CAST:
+                print role
             
         except AttributeError as attrerr:
+            print('>>>>>>>>>> Could not set task due to: See next line.')
             print('>>>>>>>>>> Could not find img tags due to: ' + str(attrerr))
     
     # 'Public' methods:
