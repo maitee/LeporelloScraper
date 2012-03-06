@@ -9,12 +9,10 @@ Created on Feb 27, 2012
 import re
 from itertools import groupby
 # Local libraries
+import LeporelloAssistent
 from LeporelloAssistent import Lepistent
 from ArtistDict import Artist
 from PerformanceDict import Performance
-
-# Default value for unavailable keys.
-NOT_AVAILABLE = 'n/a'
 
 # Member names of producer's cast.
 PRODUCERS_CAST = [
@@ -92,8 +90,8 @@ class Play(dict, Lepistent):
             title = title_string.lstrip().rstrip()
         except:
             print('>>>>>>>>>> Could not find any title in play_item_soup: ' + str(self.play_item_soup))
-            print('>>>>>>>>>> Setting title to: ' + NOT_AVAILABLE)
-            title = NOT_AVAILABLE
+            print('>>>>>>>>>> Setting title to: ' + Lepistant.NOT_AVAILABLE)
+            title = Lepistant.NOT_AVAILABLE
             
         return title
     
@@ -103,8 +101,8 @@ class Play(dict, Lepistent):
             subtitle = subtitle_string.lstrip().rstrip()
         except:
             print('>>>>>>>>>> Could not find any subtitle in play_item_soup: ' + str(self.play_item_soup))
-            print('>>>>>>>>>> Setting subtitle to: ' + NOT_AVAILABLE)
-            subtitle = NOT_AVAILABLE
+            print('>>>>>>>>>> Setting subtitle to: ' + Lepistant.NOT_AVAILABLE)
+            subtitle = Lepistant.NOT_AVAILABLE
             
         return subtitle
     
@@ -116,8 +114,8 @@ class Play(dict, Lepistent):
             location = location_part.lstrip().rstrip()
         except:
             print('>>>>>>>>>> Could not find any location in play_item_soup: ' + str(self.play_item_soup))
-            print('>>>>>>>>>> Setting location to: ' + NOT_AVAILABLE)
-            location = NOT_AVAILABLE
+            print('>>>>>>>>>> Setting location to: ' + Lepistant.NOT_AVAILABLE)
+            location = Lepistant.NOT_AVAILABLE
         
         return location
     
@@ -172,7 +170,7 @@ class Play(dict, Lepistent):
             performance_type = performance_type_string.lstrip().rstrip()
         except:
             print('>>>>>>>>>> Could not find any performance type in play_item_soup: ' + str(self.play_item_soup))
-            performance_type = NOT_AVAILABLE
+            performance_type = Lepistant.NOT_AVAILABLE
             
         return performance_type
     
@@ -252,7 +250,6 @@ class Play(dict, Lepistent):
 #        try:
             artist_item_tags = self.play_detail_soup.findAll('h4', text=re.compile('Besetzung'))[0].parent.findNextSiblings(['span', 'a', 'br'])
             artist_items = [list(tag[1]) for tag in groupby(artist_item_tags, lambda tag: str(tag) == '<br />') if not tag[0]]
-            print artist_items
             
             artist_data = artist_items[0]
             
@@ -264,18 +261,14 @@ class Play(dict, Lepistent):
                 if 'class="eventDetailPersonRole"' in str(element):
                     try:
                         role = element.string.split(':')[0]
-                        print role
                     except:
                         print('>>>>>>>>>> Could not extract a role from "' + str(artist_data) + '" due to missing ":". ' + 
                               'This probably means that this artist_data does not have a role')
                 elif 'class="eventDetailPersonLink"' in str(element):
                     full_name = element.string
                     url = Lepistent.URL_PREFIX + re.search('href=\"(.+?)\"', str(element)).group(1)
-                    print url
-                    print full_name
                 elif 'class="eventDetailPerson"' in str(element):
                     full_name = element.string
-                    print full_name
             
             soup = ''    
             if url:

@@ -34,6 +34,9 @@ class Lepistent(object):
     '''
     info = dict()
     
+    # Default value for unavailable keys.
+    NOT_AVAILABLE = 'n/a'
+    
     CSS_CLASS_CONTENT_ITEM = str()   # Set by setInfo()
     
     FILE_NAME_LEPORELLO = str()     # Set by setInfo()
@@ -141,10 +144,15 @@ class Lepistent(object):
         @param cls: This class to reference class variables.
         @param img_tag: The image tag that contains the url in its src attribute.
         '''
-        src_attr = img_tag['src']
-        url = re.search('http:\/\/(?!.*?http:\/\/).*\.(jpg|png|gif)', src_attr).group(0)
+        rst_url = cls.NOT_AVAILABLE
         
-        return url 
+        try:
+            src_attr = img_tag['src']
+            rst_url = re.search('http:\/\/(?!.*?http:\/\/).*\.(jpg|png|gif)', src_attr).group(0)
+        except:
+            print('>>>>>>>>>> Could not find any src attribute. Setting url to "n/a"')
+        
+        return rst_url 
     
     @classmethod
     def getURLFromTagContent(cls, tag_content):
