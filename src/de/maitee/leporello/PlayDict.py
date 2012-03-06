@@ -193,14 +193,17 @@ class Play(dict, Lepistant):
     def _setSummary(self):
         summary_paragraphs = self._getParagraphsForContent('Inhalt')
         self.summary = Lepistant.formatParagraphsToString(summary_paragraphs)
+#        print self.summary
                 
     def _setCritics(self):
         critics_paragraphs = self._getParagraphsForContent('Pressestimmen')
         self.critics = Lepistant.formatParagraphsToString(critics_paragraphs)
+#        print self.critics
     
     def _setFurtherInfo(self):
         further_info_paragraphs = self._getParagraphsForContent('Weitere Texte')
         self.further_info = Lepistant.formatParagraphsToString(further_info_paragraphs)
+#        print self.further_info
     
     def _setPhotos(self):
         try:
@@ -256,7 +259,8 @@ class Play(dict, Lepistant):
             artist = Artist(soup, full_name)
                 
             if role and role in PRODUCERS_CAST:
-                print role
+                self.cast[role] = artist
+                print('Added the role "' + role + '" to the producer\'s cast')
             
 #        except AttributeError as attrerr:
 #            print('>>>>>>>>>> Could not set cast due to: See next line.')

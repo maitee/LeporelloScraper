@@ -98,11 +98,11 @@ class Lepistant(object):
                 for line in paragraph.contents:
                     concatenated_string += line.string
                     
-        # Removing double blank lines.
-        concatenated_string = concatenated_string.replace('\n\r', '\n')
-        concatenated_string = concatenated_string.replace('\n\n', '\n')
-        # Replacing tabs by spaces.
-#        concatenated_string = concatenated_string.replace('\t', ' ')
+            # Removing double blank lines.
+            concatenated_string = concatenated_string.replace('\n\r', '\n')
+            concatenated_string = concatenated_string.replace('\n\n', '\n')
+            # Replacing tabs by spaces.
+    #        concatenated_string = re.sub(r'  +', ' ', concatenated_string)
                 
         return concatenated_string
     
