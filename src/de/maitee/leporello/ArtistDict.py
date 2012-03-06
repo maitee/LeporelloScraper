@@ -3,6 +3,7 @@ Created on Mar 5, 2012
 
 @author: simon
 '''
+from de.maitee.leporello.LeporelloAssistent import Lepistent
 
 class Artist(dict):
     '''
@@ -10,7 +11,7 @@ class Artist(dict):
     '''
 
 
-    def __init__(self, artist_item_soup, name):
+    def __init__(self, soup, name):
         '''
         Constructor
         '''
@@ -23,7 +24,7 @@ class Artist(dict):
         self.photo = None
         self.biography = None
         self.appearances = None
-        self.artist_item_soup = self._setDetails(artist_item_soup)
+        self.soup = self._setDetails(soup)
         
         
     # 'Private' methods:
@@ -46,33 +47,29 @@ class Artist(dict):
         
         return name
     
-    def _setPhoto(self):
-        # TODO:
-        photos = []
-        img_tag = self.artist_item_soup.find('img', {"class": "person-picture"})
-        print img_tag
-        print('in _setPhotos(' + str(photos) + ')')
-        
-        self.photo = ''
+    def _setPhoto(self, soup):
+        img_tag = soup.find('img', {"class": "person-picture"})
+        url = Lepistent.getURLFromImageTag(img_tag)
+        self.photo = url
     
-    def _setBiography(self):
+    def _setBiography(self, soup):
         # TODO:
         biography = ''
-        print('in _setBiography(' + biography + ')')
+#        print('in _setBiography(' + biography + ')')
         
         self.biography = ''
         
-    def _setAppearances(self):
+    def _setAppearances(self, soup):
         # TODO:
         appearances = []
-        print('in _setAppearances(' + str(appearances) + ')')
+#        print('in _setAppearances(' + str(appearances) + ')')
         
         self.appearances = list()
     
     def _setDetails(self, soup):
         if soup:
-            self._setPhoto()
-            self._setBiography()
-            self._setAppearances()
+            self._setPhoto(soup)
+            self._setBiography(soup)
+            self._setAppearances(soup)
         
         return soup
