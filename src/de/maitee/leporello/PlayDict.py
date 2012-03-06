@@ -9,8 +9,8 @@ Created on Feb 27, 2012
 import re
 from itertools import groupby
 # Local libraries
-import LeporelloAssistent
-from LeporelloAssistent import Lepistent
+import LeporelloAssistant
+from LeporelloAssistant import Lepistant
 from ArtistDict import Artist
 from PerformanceDict import Performance
 
@@ -51,7 +51,7 @@ PRODUCERS_CAST = [
                   'Visuelle Gestaltung', 
                   ]
 
-class Play(dict, Lepistent):
+class Play(dict, Lepistant):
     '''
     classdocs
     '''
@@ -202,7 +202,7 @@ class Play(dict, Lepistent):
         if paragraphs:
             for paragraph in paragraphs:
                 ''' The following method is not working. Don't know why. ''' 
-        #        Lepistent.removeSubtreesFromSoup(paragraph, lambda: paragraph.br)
+        #        Lepistant.removeSubtreesFromSoup(paragraph, lambda: paragraph.br)
         #        print summary_paragraph
                 
                 ''' Removing the br tags here since the above method is not working. '''
@@ -230,7 +230,7 @@ class Play(dict, Lepistent):
         try:
             img_tags = self.play_detail_soup.find('div', {"class": "thumbnails"}).findAll('img')
             for img_tag in img_tags:
-                img_url = Lepistent.getURLFromImageTag(img_tag)
+                img_url = Lepistant.getURLFromImageTag(img_tag)
                 self.photos.append(img_url)
         except AttributeError as attrerr:
             print('>>>>>>>>>> Could not set photos due to: See next line.')
@@ -240,7 +240,7 @@ class Play(dict, Lepistent):
         try:
             img_tags = self.play_detail_soup.find('div', {"class": "sponsors clearfix"})
             for img_tag in img_tags:
-                img_url = Lepistent.getURLFromImageTag(img_tag)
+                img_url = Lepistant.getURLFromImageTag(img_tag)
                 self.sponsors.append(img_url)
         except AttributeError as attrerr:
             print('>>>>>>>>>> Could not set sponsors due to: See next line.')
@@ -266,7 +266,7 @@ class Play(dict, Lepistent):
                               'This probably means that this artist_data does not have a role')
                 elif 'class="eventDetailPersonLink"' in str(element):
                     full_name = element.string
-                    url = Lepistent.URL_PREFIX + re.search('href=\"(.+?)\"', str(element)).group(1)
+                    url = Lepistant.URL_PREFIX + re.search('href=\"(.+?)\"', str(element)).group(1)
                 elif 'class="eventDetailPerson"' in str(element):
                     full_name = element.string
             
@@ -274,8 +274,8 @@ class Play(dict, Lepistent):
             if url:
                 # TODO:
                 print url
-                file_path = Lepistent.createFilePath(Lepistent.REL_PATH_ARTISTS_FOLDER, full_name, 'html')
-                soup = Lepistent.getSoup(url, file_path)
+                file_path = Lepistant.createFilePath(Lepistant.REL_PATH_ARTISTS_FOLDER, full_name, 'html')
+                soup = Lepistant.getSoup(url, file_path)
                 
             artist = Artist(soup, full_name)
                 

@@ -11,7 +11,7 @@ from pprint import pprint
 # Third party libraries
 # Local libraries
 from PlayDict import Play
-from LeporelloAssistent import Lepistent
+from LeporelloAssistant import Lepistant
 
 if __name__ == '__main__':
     pass
@@ -55,39 +55,39 @@ def getPlays(leporello_info):
     plays = dict()
     
     # Initializing the Leporello Assistent with meta information for web scraping.
-    Lepistent.setInfo(leporello_info)
+    Lepistant.setInfo(leporello_info)
     
-    leporelloFileNameOnDisk = Lepistent.createFilePath(
-                                            Lepistent.REL_PATH_DOWNLOADS_FOLDER, 
-                                            Lepistent.FILE_NAME_LEPORELLO, 
+    leporelloFileNameOnDisk = Lepistant.createFilePath(
+                                            Lepistant.REL_PATH_DOWNLOADS_FOLDER, 
+                                            Lepistant.FILE_NAME_LEPORELLO, 
                                             'leporello')
-    soup = Lepistent.getSoup(leporello_info[URL_LEPORELLO], 
+    soup = Lepistant.getSoup(leporello_info[URL_LEPORELLO], 
                              leporelloFileNameOnDisk)
-    playItems = Lepistent.getTagsByClass(soup, 'div', 
+    playItems = Lepistant.getTagsByClass(soup, 'div', 
                                          leporello_info[CSS_CLASS_PLAY_ITEM])
     leporello_info[PLAY_ITEMS] = playItems
     
     # Get only one play item for testing purposes
     playItem = playItems[12]
     play = Play(playItem)
-    play.link = Lepistent.getURLFromTagContent(playItem)
-    play.file_name_on_disk = Lepistent.createFilePath(
-                                            Lepistent.REL_PATH_PLAYS_FOLDER, 
+    play.link = Lepistant.getURLFromTagContent(playItem)
+    play.file_name_on_disk = Lepistant.createFilePath(
+                                            Lepistant.REL_PATH_PLAYS_FOLDER, 
                                             play.title, 
                                             'html')
-    soup = Lepistent.getSoup(play.link, play.file_name_on_disk)
+    soup = Lepistant.getSoup(play.link, play.file_name_on_disk)
     play.setPlayDetails(soup)
     
 #    pprint(play.__dict__)
     
 #    for playItem in playItems:
 #        play = Play(playItem)
-#        play.link = Lepistent.getURLFromTagContent(playItem)
-#        play.file_name_on_disk = Lepistent.createFilePath(
-#                                            Lepistent.REL_PATH_PLAYS_FOLDER, 
+#        play.link = Lepistant.getURLFromTagContent(playItem)
+#        play.file_name_on_disk = Lepistant.createFilePath(
+#                                            Lepistant.REL_PATH_PLAYS_FOLDER, 
 #                                            play.title, 
 #                                            'html')
-#        soup = Lepistent.getSoup(play.link, play.file_name_on_disk)
+#        soup = Lepistant.getSoup(play.link, play.file_name_on_disk)
 #        plays[play.title] = play
     
 #    play = createPlay(title)

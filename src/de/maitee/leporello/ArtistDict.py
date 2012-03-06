@@ -3,7 +3,7 @@ Created on Mar 5, 2012
 
 @author: simon
 '''
-from de.maitee.leporello.LeporelloAssistent import Lepistent
+from de.maitee.leporello.LeporelloAssistant import Lepistant
 
 class Artist(dict):
     '''
@@ -49,12 +49,13 @@ class Artist(dict):
     
     def _setPhoto(self, soup):
         img_tag = soup.find('img', {"class": "person-picture"})
-        url = Lepistent.getURLFromImageTag(img_tag)
+        url = Lepistant.getURLFromImageTag(img_tag)
         self.photo = url
     
     def _setBiography(self, soup):
         # TODO:
-        biography = ''
+        biography_p_tag = soup.find('p', {"class": "person-description"})
+        print biography_p_tag
 #        print('in _setBiography(' + biography + ')')
         
         self.biography = ''
