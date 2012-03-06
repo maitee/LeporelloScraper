@@ -190,41 +190,18 @@ class Play(dict, Lepistant):
         
         return soup
     
-    def _replaceBrTagsInSoup(self, soup, tag_replacement):
-        while soup.br:
-            soup.br.replaceWith('\n')
-            
-        return soup
-    
-    def _concatenatingStringsFromParagraphs(self, paragraphs):
-        concatenated_string = ''
-        
-        if paragraphs:
-            for paragraph in paragraphs:
-                ''' The following method is not working. Don't know why. ''' 
-        #        Lepistant.removeSubtreesFromSoup(paragraph, lambda: paragraph.br)
-        #        print summary_paragraph
-                
-                ''' Removing the br tags here since the above method is not working. '''
-                paragraph = self._replaceBrTagsInSoup(paragraph, '\n')
-                
-                # Concatenating the content's lines by assigning them to concatenated_string
-                for line in paragraph.contents:
-                    concatenated_string += line.string
-                
-        return concatenated_string
-                
     def _setSummary(self):
-        summary_paragraphs = self._getParagraphsForContent('Inhalt') 
-        self.summary = self._concatenatingStringsFromParagraphs(summary_paragraphs)
+        summary_paragraphs = self._getParagraphsForContent('Inhalt')
+        self.summary = Lepistant.formatParagraphsToString(summary_paragraphs)
                 
     def _setCritics(self):
         critics_paragraphs = self._getParagraphsForContent('Pressestimmen')
-        self.critics = self._concatenatingStringsFromParagraphs(critics_paragraphs)
+        print critics_paragraphs
+        self.critics = Lepistant.formatParagraphsToString(critics_paragraphs)
     
     def _setFurtherInfo(self):
         further_info_paragraphs = self._getParagraphsForContent('Weitere Texte')
-        self.further_info = self._concatenatingStringsFromParagraphs(further_info_paragraphs)
+        self.further_info = Lepistant.formatParagraphsToString(further_info_paragraphs)
     
     def _setPhotos(self):
         try:

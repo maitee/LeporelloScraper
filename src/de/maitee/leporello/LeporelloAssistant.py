@@ -82,6 +82,25 @@ class Lepistant(object):
         return file_path
     
     @classmethod
+    def formatParagraphsToString(cls, paragraphs):
+        concatenated_string = ''
+        
+        if paragraphs:
+            for paragraph in paragraphs:
+                ''' The following method is not working. Don't know why. ''' 
+        #        Lepistant.removeSubtreesFromSoup(paragraph, lambda: paragraph.br)
+        #        print summary_paragraph
+                
+                ''' Removing the br tags here since the above method is not working. '''
+                paragraph = cls.replaceBrTagsInSoup(paragraph, '\n')
+                
+                # Concatenating the content's lines by assigning them to concatenated_string
+                for line in paragraph.contents:
+                    concatenated_string += line.string
+                
+        return concatenated_string
+    
+    @classmethod
     def getSoup(cls, url, file_path):
         '''
         Gets soup from a webpage/file and pickles the soup if it was fetched from a webpage.
@@ -214,6 +233,13 @@ class Lepistant(object):
         while f_subtree():
             f_subtree = f_subtree()
             f_subtree.extract()
+    
+    @classmethod
+    def replaceBrTagsInSoup(self, soup, tag_replacement):
+        while soup.br:
+            soup.br.replaceWith('\n')
+            
+        return soup
             
     @classmethod
     def setInfo(cls, info):
