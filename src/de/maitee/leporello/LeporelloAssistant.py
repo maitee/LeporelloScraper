@@ -84,7 +84,7 @@ class Lepistant(object):
     @classmethod
     def formatParagraphsToString(cls, paragraphs):
         concatenated_string = ''
-        
+#        print paragraphs
         if paragraphs:
             for paragraph in paragraphs:
                 ''' The following method is not working. Don't know why. ''' 
@@ -97,6 +97,12 @@ class Lepistant(object):
                 # Concatenating the content's lines by assigning them to concatenated_string
                 for line in paragraph.contents:
                     concatenated_string += line.string
+                    
+        # Removing double blank lines.
+        concatenated_string = concatenated_string.replace('\n\r', '\n')
+        concatenated_string = concatenated_string.replace('\n\n', '\n')
+        # Replacing tabs by spaces.
+#        concatenated_string = concatenated_string.replace('\t', ' ')
                 
         return concatenated_string
     

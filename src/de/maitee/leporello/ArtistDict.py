@@ -54,8 +54,10 @@ class Artist(dict):
     
     def _setBiography(self, soup):
         # TODO:
-        biography_p_tag = soup.find('p', {"class": "person-description"})
-        print biography_p_tag
+        biography_p_tag = soup.findAll('p', {"class": "person-description"})
+        biography = Lepistant.formatParagraphsToString(biography_p_tag)
+        print repr(biography)
+        print biography
 #        print('in _setBiography(' + biography + ')')
         
         self.biography = ''

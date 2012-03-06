@@ -196,7 +196,6 @@ class Play(dict, Lepistant):
                 
     def _setCritics(self):
         critics_paragraphs = self._getParagraphsForContent('Pressestimmen')
-        print critics_paragraphs
         self.critics = Lepistant.formatParagraphsToString(critics_paragraphs)
     
     def _setFurtherInfo(self):
