@@ -3,7 +3,7 @@ Created on Mar 5, 2012
 
 @author: simon
 '''
-from de.maitee.leporello.LeporelloAssistant import Lepistant
+from LeporelloAssistant import Lepistant
 
 class Artist(dict):
     '''
@@ -50,21 +50,32 @@ class Artist(dict):
     def _setPhoto(self, soup):
         img_tag = soup.find('img', {"class": "person-picture"})
         url = Lepistant.getURLFromImageTag(img_tag)
-        self.photo = url
+        if url:
+            self.photo = url
+        else:
+            self.photo = Lepistant.NOT_AVAILABLE
     
     def _setBiography(self, soup):
-        # TODO:
         biography_p_tag = soup.findAll('p', {"class": "person-description"})
         biography = Lepistant.formatParagraphsToString(biography_p_tag)
 #        print repr(biography)
-        self.biography = biography
+        if biography:
+            self.biography = biography
+        else:
+            self.biography = Lepistant.NOT_AVAILABLE
         
     def _setAppearances(self, soup):
-        # TODO:
         appearances = []
-#        print('in _setAppearances(' + str(appearances) + ')')
-        
-        self.appearances = list()
+        try:
+            appearance_ul_tag = soup.findAll('ul', {"class": "events"})[0]
+            appearance_link_tags = appearance_ul_tag.findAll('a')
+            for link in appearance_link_tags:
+                appearances.append(link.string)
+            self.appearances = appearances
+        except:
+            print('>>>>>>>>>> Could not set appearances due to: Appearances do not exist')
+            self.appearances = Lepistant.NOT_AVAILABLE
+        print self.appearances
     
     def _setDetails(self, soup):
         if soup:
