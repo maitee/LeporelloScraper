@@ -61,41 +61,25 @@ class Lepistant(object):
     
     # Class methods:
     @classmethod
-    def setInfo(cls, info):
-        cls.info = info
-        cls.CSS_CLASS_CONTENT_ITEM = info[cls.KEY_CSS_CLASS_CONTENT_ITEM]
-        cls.FILE_NAME_LEPORELLO = info[cls.KEY_THEATRE]
-        cls.URL_PREFIX = info[cls.KEY_URL_PREFIX]
-    
-    @classmethod
-    def pickleSoup(cls, soup, file_path):
+    def createFilePath(cls, path, name, suffix):
         '''
-        Pickles a soup in form of string for later usage.
+        Creates a file path including the file name for pickling any kind of text files (webpages) 
+        by removing all non-alphanumeric characters from the name.
         @param cls: This class to reference class variables.
-        @param soup: The soup to pickle.
-        @param fileName: The file name under which the soup should be pickled.
+        @param path: The path to the directory in which the file will be pickled.
+        @param name: The name that will be formatted so it it can be used as the file name.
+        @param suffix: The suffix of the file name, e.g. '.html', '.txt', ... .
+        @return: (string) file_path - A formatted file path that can be used for pickling a file.
         '''
-        # Extracting the folder_path from the file_path
-        # file_paty: '../../../../downloads/plays/AltArmArbeitslos.html' > folder_paty: '../../../../downloads/plays/' 
-        folder_path =  file_path.rsplit('/', 1)[0]
-        # Create 'downloads' directory for saving files if the directory does not exist.
-        if not os.path.isdir(folder_path):
-            try:
-                os.makedirs(folder_path)
-            except OSError as oserr:
-                print('OSError: ' + str(oserr))
-                print('Could not pickle soup because creating directory failed: ' + folder_path)
-                return
+        # TODO: Implement a condition instead of exception to handle correct method according 
+        # to the python version. The UNICODE flag is only supported for python >= 2.7
+        # Removing all non-alphanumeric characters and appending the suffix.
+        try:
+            file_path = path + re.sub(r"\W+", "", name, 0, re.UNICODE) + '.' + suffix
+        except TypeError as terr:
+            file_path = path + re.sub(r"\W+", "", name) + '.' + suffix
         
-        # Only pickle file if the file does not exist.
-        file_exists = os.path.isfile(file_path)
-        if not file_exists:
-            try:
-                with open(file_path, 'wb') as to_file_path:
-                    pickle.dump(str(soup), to_file_path)
-            except PickleError as perr:
-                print('Pickle error: ' + str(perr))
-                print('Could not pickle soup.')
+        return file_path
     
     @classmethod
     def getSoup(cls, url, file_path):
@@ -136,6 +120,19 @@ class Lepistant(object):
             print('Failed to parse soup for URL: "' + file_path + ' " - ' + str(htmlerr))
             
         return soup
+    
+    @classmethod
+    def getTagsByClass(cls, soup, tag, css_class):
+        '''
+        Gets all tags that uses a specific CSS class.
+        @param cls: This class to reference class variables.
+        @param soup: The soup containin the HTML code that will be inspected.
+        @param tag: The HTML tag that uses the specified CSS class.
+        @param css_class: 
+        '''
+        play_items = soup.findAll(tag, {"class": css_class})
+        
+        return play_items
         
     @classmethod
     def getURLFromImageTag(cls, img_tag):
@@ -173,41 +170,37 @@ class Lepistant(object):
             print('Setting url to "' + cls.URL_PREFIX + '"')
             
         return url
-        
+    
     @classmethod
-    def createFilePath(cls, path, name, suffix):
+    def pickleSoup(cls, soup, file_path):
         '''
-        Creates a file path including the file name for pickling any kind of text files (webpages) 
-        by removing all non-alphanumeric characters from the name.
+        Pickles a soup in form of string for later usage.
         @param cls: This class to reference class variables.
-        @param path: The path to the directory in which the file will be pickled.
-        @param name: The name that will be formatted so it it can be used as the file name.
-        @param suffix: The suffix of the file name, e.g. '.html', '.txt', ... .
-        @return: (string) file_path - A formatted file path that can be used for pickling a file.
+        @param soup: The soup to pickle.
+        @param fileName: The file name under which the soup should be pickled.
         '''
-        # TODO: Implement a condition instead of exception to handle correct method according 
-        # to the python version. The UNICODE flag is only supported for python >= 2.7
-        # Removing all non-alphanumeric characters and appending the suffix.
-        try:
-            file_path = path + re.sub(r"\W+", "", name, 0, re.UNICODE) + '.' + suffix
-        except TypeError as terr:
-            file_path = path + re.sub(r"\W+", "", name) + '.' + suffix
+        # Extracting the folder_path from the file_path
+        # file_paty: '../../../../downloads/plays/AltArmArbeitslos.html' > folder_paty: '../../../../downloads/plays/' 
+        folder_path =  file_path.rsplit('/', 1)[0]
+        # Create 'downloads' directory for saving files if the directory does not exist.
+        if not os.path.isdir(folder_path):
+            try:
+                os.makedirs(folder_path)
+            except OSError as oserr:
+                print('OSError: ' + str(oserr))
+                print('Could not pickle soup because creating directory failed: ' + folder_path)
+                return
         
-        return file_path
-
-    @classmethod
-    def getTagsByClass(cls, soup, tag, css_class):
-        '''
-        Gets all tags that uses a specific CSS class.
-        @param cls: This class to reference class variables.
-        @param soup: The soup containin the HTML code that will be inspected.
-        @param tag: The HTML tag that uses the specified CSS class.
-        @param css_class: 
-        '''
-        play_items = soup.findAll(tag, {"class": css_class})
-        
-        return play_items
-        
+        # Only pickle file if the file does not exist.
+        file_exists = os.path.isfile(file_path)
+        if not file_exists:
+            try:
+                with open(file_path, 'wb') as to_file_path:
+                    pickle.dump(str(soup), to_file_path)
+            except PickleError as perr:
+                print('Pickle error: ' + str(perr))
+                print('Could not pickle soup.')
+    
     @classmethod
     def removeSubtreesFromSoup(cls, soup, f_subtree):
         '''
@@ -221,5 +214,16 @@ class Lepistant(object):
         while f_subtree():
             f_subtree = f_subtree()
             f_subtree.extract()
+            
+    @classmethod
+    def setInfo(cls, info):
+        cls.info = info
+        cls.CSS_CLASS_CONTENT_ITEM = info[cls.KEY_CSS_CLASS_CONTENT_ITEM]
+        cls.FILE_NAME_LEPORELLO = info[cls.KEY_THEATRE]
+        cls.URL_PREFIX = info[cls.KEY_URL_PREFIX]
+        
+    
+        
+    
         
     
