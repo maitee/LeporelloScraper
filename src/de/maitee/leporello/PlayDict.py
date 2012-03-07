@@ -9,7 +9,6 @@ Created on Feb 27, 2012
 import re
 from itertools import groupby
 # Local libraries
-import LeporelloAssistant
 from LeporelloAssistant import Lepistant
 from ArtistDict import Artist
 from PerformanceDict import Performance
@@ -110,6 +109,7 @@ class Play(dict, Lepistant):
         try:
             # location_string = "Neues Schauspielhaus / Termine: 10. | 14. | 18. September 2011, 01. | 16. | 22. Oktober 2011, 18. | 29. November 2011, 08. | 11. | 16. | 29. Dezember 2011, 27. Januar 2012, 03. | 10. | 15. | 26. Februar 2012, 27. März 2012"    
             location_string = self.play_item_soup.findAll('p')[1].span.nextSibling
+            # Ignore warning since we only need the location_part anyway.
             (location_part, seperator, dates_part) = location_string.partition('/')
             location = location_part.lstrip().rstrip()
         except:
@@ -225,46 +225,25 @@ class Play(dict, Lepistant):
             print('>>>>>>>>>> Could not set sponsors due to: See next line.')
             print('>>>>>>>>>> Could not find img tags due to: ' + str(attrerr))
     
+    
     def _setCast(self):
-#        try:
+        try:
+            print('>>>>>>>>>> in PlayDict._setCast() <<<<<<<<<<')
             artist_item_tags = self.play_detail_soup.findAll('h4', text=re.compile('Besetzung'))[0].parent.findNextSiblings(['span', 'a', 'br'])
             artist_items = [list(tag[1]) for tag in groupby(artist_item_tags, lambda tag: str(tag) == '<br />') if not tag[0]]
             
             artist_data = artist_items[0]
             
-            role = ''
-            full_name = ''
-            url = ''
-            print artist_data
-            for element in artist_data:
-                if 'class="eventDetailPersonRole"' in str(element):
-                    try:
-                        role = element.string.split(':')[0]
-                    except:
-                        print('>>>>>>>>>> Could not extract a role from "' + str(artist_data) + '" due to missing ":". ' + 
-                              'This probably means that this artist_data does not have a role')
-                elif 'class="eventDetailPersonLink"' in str(element):
-                    full_name = element.string
-                    url = Lepistant.URL_PREFIX + re.search('href=\"(.+?)\"', str(element)).group(1)
-                elif 'class="eventDetailPerson"' in str(element):
-                    full_name = element.string
-            
-            soup = ''    
-            if url:
-                # TODO:
-                print url
-                file_path = Lepistant.createFilePath(Lepistant.REL_PATH_ARTISTS_FOLDER, full_name, 'html')
-                soup = Lepistant.getSoup(url, file_path)
-                
-            artist = Artist(soup, full_name)
-                
+            artist = Artist(artist_data)
+            # TODO: Check if this particular artist already exists. If he does only update his data
+            # Getting the last added producer role of this artist.
+            role = artist.producer_roles[-1]             
             if role and role in PRODUCERS_CAST:
                 self.cast[role] = artist
                 print('Added the role "' + role + '" to the producer\'s cast')
             
-#        except AttributeError as attrerr:
-#            print('>>>>>>>>>> Could not set cast due to: See next line.')
-#            print('>>>>>>>>>> Could not find img tags due to: ' + str(attrerr))
+        except AttributeError as attrerr:
+            print('>>>>>>>>>> Could not set artist data due to parsing error in the soup: ' + str(attrerr))
     
     # 'Public' methods:
     def setPlayDetails(self, soup):

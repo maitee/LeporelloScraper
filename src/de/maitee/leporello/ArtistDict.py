@@ -3,6 +3,9 @@ Created on Mar 5, 2012
 
 @author: simon
 '''
+import re
+from itertools import groupby
+import PlayDict
 from LeporelloAssistant import Lepistant
 
 class Artist(dict):
@@ -11,23 +14,64 @@ class Artist(dict):
     '''
 
 
-    def __init__(self, soup, name):
+    def __init__(self, data_list):
         '''
         Constructor
         '''
         dict.__init__({})
+        
         self.first_name = str()
         self.middle_name = str()
         self.last_name = str()
-        self.full_name = self._setName(name)
+        
+        self.artist_roles = list()
+        self.producer_roles = list()
         
         self.photo = None
         self.biography = None
         self.appearances = None
-        self.soup = self._setDetails(soup)
+        self.soup_details = None
         
+        self.data_list = self._setData(data_list)
         
     # 'Private' methods:
+    def _setRole(self, role):
+        if role and role in PlayDict.PRODUCERS_CAST:
+            self.producer_roles.append(role)
+        else:
+            self.artist_roles.append(role)
+    
+    
+    def _setData(self, data_list):
+        print('>>>>>>>>>> in ArtistDict._setData() <<<<<<<<<<')
+        
+        role = ''
+        full_name = ''
+        url = ''
+        
+        for element in data_list:
+            if 'class="eventDetailPersonRole"' in str(element):
+                try:
+                    role = element.string.split(':')[0]
+                except:
+                    print('>>>>>>>>>> Could not extract a role from "' + str(data_list) + '" due to missing ":". ' + 
+                          'This probably means that this data_list does not have a role')
+            elif 'class="eventDetailPersonLink"' in str(element):
+                full_name = element.string
+                url = Lepistant.URL_PREFIX + re.search('href=\"(.+?)\"', str(element)).group(1)
+            elif 'class="eventDetailPerson"' in str(element):
+                full_name = element.string
+        
+        self._setName(full_name)
+        if role:
+            self._setRole(role)
+        if url:
+            file_path = Lepistant.createFilePath(Lepistant.REL_PATH_ARTISTS_FOLDER, full_name, 'html')
+            soup = Lepistant.getSoup(url, file_path)
+            self._setDetails(soup)
+            
+        return data_list
+    
     def _setName(self, name):
         splitted_name = name.split(' ')
         self.first_name = splitted_name[0]
