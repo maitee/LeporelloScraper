@@ -12,10 +12,13 @@ import os
 import pickle
 import urllib2
 import HTMLParser
+import logging.config
 from pickle import PickleError
 # Third party libraries
 from BeautifulSoup import BeautifulSoup
 # Local libraries
+
+logger = logging.getLogger('leporello')
 
 class Lepistant(object):
     '''
@@ -79,32 +82,37 @@ class Lepistant(object):
         except TypeError as terr:
             file_path = path + re.sub(r"\W+", "", name) + '.' + suffix
         
+        logger.info('Created file path: %s', file_path)
         return file_path
     
     @classmethod
     def formatParagraphsToString(cls, paragraphs):
-        concatenated_string = ''
-#        print paragraphs
+        '''
+        Formats text from several paragraphs to one string and replaces \<br\> tags with \\n.
+        @param cls: This class to reference class variables.
+        @param paragraphs: (list) The paragraphs that will be formatted to one text/string.  
+        @return: (string) A newly formatted string that contains all the text from the paragraphs.
+        '''
+        rst_concatenated_string = ''
         if paragraphs:
             for paragraph in paragraphs:
                 ''' The following method is not working. Don't know why. ''' 
         #        Lepistant.removeSubtreesFromSoup(paragraph, lambda: paragraph.br)
-        #        print summary_paragraph
                 
                 ''' Removing the br tags here since the above method is not working. '''
                 paragraph = cls.replaceBrTagsInSoup(paragraph, '\n')
                 
-                # Concatenating the content's lines by assigning them to concatenated_string
+                # Concatenating the content's lines by assigning them to rst_concatenated_string
                 for line in paragraph.contents:
-                    concatenated_string += line.string
+                    rst_concatenated_string += line.string
                     
             # Removing double blank lines.
-            concatenated_string = concatenated_string.replace('\n\r', '\n')
-            concatenated_string = concatenated_string.replace('\n\n', '\n')
-            # Replacing tabs by spaces.
-    #        concatenated_string = re.sub(r'  +', ' ', concatenated_string)
+            rst_concatenated_string = rst_concatenated_string.replace('\n\r', '\n')
+            rst_concatenated_string = rst_concatenated_string.replace('\n\n', '\n')
+            # Removing extra spaces.
+    #        rst_concatenated_string = re.sub(r'  +', ' ', rst_concatenated_string)
                 
-        return concatenated_string
+        return rst_concatenated_string
     
     @classmethod
     def getSoup(cls, url, file_path):
@@ -117,34 +125,34 @@ class Lepistant(object):
         @return: (string) soup -A soup in form of a string, if succeeded and an empty string, 
         if no soup could be fetched
         '''
-        soup = ''
+        rst_soup = ''
         webpage = ''
         
         try:
-            # Check if there is a pickled soup for file name.
+            # Check if there is a pickled rst_soup for file name.
             with open(file_path, 'rb') as from_file_name:
                 webpage = pickle.load(from_file_name)
-            print('Retrieved webpage "' + file_path + '" as a soup string from disk.')
+            logger.info('Retrieved webpage "%s" as a rst_soup string from disk.', file_path)
         except IOError as err:
-            print('File error: ' + str(err))
-            print('Start downloading webpage: "' + url + '" from the internet.')
+            logger.warning('Failed to open file "%s" due to: %s', url, str(err))
+            logger.info('Start downloading webpage from the internet instead')
             try:
                 # Get HTML code from the URL addresss.
                 webpage = urllib2.urlopen(url)
-            except urllib2.URLError:
-                print('Failed to fetch website: ' + url)
+            except urllib2.URLError as urlerr:
+                logger.error('Failed to fetch webpage "%s" due to: %s', url, str(urlerr))
         except pickle.PickleError as perr:
-            print('Pickle error: ' + str(perr))
+            logger.warning('Failed to pickle webpage "%s" due to: %s', url, str(perr))
          
         try:
-            # Cook a soup from the fetched HTML code of the webpage.    
-            soup = BeautifulSoup(webpage)
-            # Pickle soup content for later usage.
-            Lepistant.pickleSoup(soup, file_path)
+            # Cook a rst_soup from the fetched HTML code of the webpage.    
+            rst_soup = BeautifulSoup(webpage)
+            # Pickle rst_soup content for later usage.
+            Lepistant.pickleSoup(rst_soup, file_path)
         except HTMLParser.HTMLParseError as htmlerr:
-            print('Failed to parse soup for URL: "' + file_path + ' " - ' + str(htmlerr))
+            logger.warning('Failed to parse rst_soup from "%s" due to: ', file_path, str(htmlerr))
             
-        return soup
+        return rst_soup
     
     @classmethod
     def getTagsByClass(cls, soup, tag, css_class):
@@ -155,9 +163,13 @@ class Lepistant(object):
         @param tag: The HTML tag that uses the specified CSS class.
         @param css_class: 
         '''
-        play_items = soup.findAll(tag, {"class": css_class})
+        rst_tag_list = []
+        try:
+            rst_tag_list = soup.findAll(tag, {"class": css_class})
+        except TypeError as terr:
+            logger.error('Failed parsing soup due to: %s - Returning an empty list instead.', str(terr))
         
-        return play_items
+        return rst_tag_list
         
     @classmethod
     def getURLFromImageTag(cls, img_tag):
@@ -172,7 +184,7 @@ class Lepistant(object):
             src_attr = img_tag['src']
             rst_url = re.search('http:\/\/(?!.*?http:\/\/).*\.(jpg|png|gif)', src_attr).group(0)
         except:
-            print('>>>>>>>>>> Could not find any src attribute. Setting url to "n/a"')
+            logger.warning('Could not find any src attribute in img_tag "%s". Setting url to "%s"', img_tag, cls.NOT_AVAILABLE)
         
         return rst_url 
     
@@ -182,19 +194,18 @@ class Lepistant(object):
         Gets the URL of a link ('<a>' tag) from an HTML tag.
         @param cls: This class to reference class variables.
         @param tag: Tag that contains the <a> tag with the URL address.
-        @return: (string) url - The URL address in form a string. 
+        @return: (string) rst_url - The URL address in form a string. 
         '''
-        url = cls.URL_PREFIX
+        rst_url = ''
     
         try:
-            url = tag_content.a.attrs[0][1]
-            if (not url.startswith('http://')):
-                url = cls.URL_PREFIX + url
+            rst_url = tag_content.a.attrs[0][1]
+            if (not rst_url.startswith('http://')):
+                rst_url = cls.URL_PREFIX + rst_url
         except:
-            print('Could not find any url to play details in playItem: ' + str(tag_content))
-            print('Setting url to "' + cls.URL_PREFIX + '"')
+            logger.warning('Could not find any url in tag_content "%s". Setting url to empty string', tag_content)
             
-        return url
+        return rst_url
     
     @classmethod
     def pickleSoup(cls, soup, file_path):
@@ -205,15 +216,15 @@ class Lepistant(object):
         @param fileName: The file name under which the soup should be pickled.
         '''
         # Extracting the folder_path from the file_path
-        # file_paty: '../../../../downloads/plays/AltArmArbeitslos.html' > folder_paty: '../../../../downloads/plays/' 
+        # file_path: '../../../../downloads/plays/AltArmArbeitslos.html' > folder_paty: '../../../../downloads/plays/' 
         folder_path =  file_path.rsplit('/', 1)[0]
         # Create 'downloads' directory for saving files if the directory does not exist.
         if not os.path.isdir(folder_path):
             try:
                 os.makedirs(folder_path)
             except OSError as oserr:
-                print('OSError: ' + str(oserr))
-                print('Could not pickle soup because creating directory failed: ' + folder_path)
+                logger.warning('Failed to create folder "%s" due to: %s', folder_path, str(oserr))
+            else:
                 return
         
         # Only pickle file if the file does not exist.
@@ -223,8 +234,7 @@ class Lepistant(object):
                 with open(file_path, 'wb') as to_file_path:
                     pickle.dump(str(soup), to_file_path)
             except PickleError as perr:
-                print('Pickle error: ' + str(perr))
-                print('Could not pickle soup.')
+                logger.warning('Failed to pickle soup due to: %s', str(perr))
     
     @classmethod
     def removeSubtreesFromSoup(cls, soup, f_subtree):
