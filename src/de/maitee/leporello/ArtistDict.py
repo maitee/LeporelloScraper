@@ -3,10 +3,18 @@ Created on Mar 5, 2012
 
 @author: simon
 '''
+
+# Standard libraries
 import re
+import logging
 from itertools import groupby
+# Local libraries
 import PlayDict
 from LeporelloAssistant import Lepistant
+
+
+logger = logging.getLogger('leporello')
+
 
 class Artist(dict):
     '''
@@ -20,6 +28,7 @@ class Artist(dict):
         '''
         dict.__init__({})
         
+        self.full_name = str()
         self.first_name = str()
         self.middle_name = str()
         self.last_name = str()
@@ -73,6 +82,8 @@ class Artist(dict):
         return data_list
     
     def _setName(self, name):
+        self.full_name = name
+        
         splitted_name = name.split(' ')
         self.first_name = splitted_name[0]
         if len(splitted_name) > 1:
@@ -88,8 +99,6 @@ class Artist(dict):
             else:
 #                print('in _setName(' + self.first_name + self.last_name + ')')
                 pass
-        
-        return name
     
     def _setPhoto(self, soup):
         img_tag = soup.find('img', {"class": "person-picture"})
