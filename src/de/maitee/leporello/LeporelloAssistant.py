@@ -193,23 +193,42 @@ class Lepistant(object):
         return rst_url 
     
     @classmethod
+    def getURLFromLinkTag(cls, link):
+        '''
+        Gets the URL from a link ('<a>' tag).
+        @param cls: This class to reference class variables.
+        @param tag: Link ('<a>' tag) that contains the URL address.
+        @return: (string) url - The URL address in form of a string. 
+        '''
+        url = ''
+    
+        try:
+            url = link.attrs[0][1]
+            if (not url.startswith('http://')):
+                url = cls.URL_PREFIX + url
+        except:
+            logger.warning('Could not extract url from the link "%s". Setting url to an empty string', link)
+            
+        return url
+    
+    @classmethod
     def getURLFromTagContent(cls, tag_content):
         '''
         Gets the URL of a link ('<a>' tag) from an HTML tag.
         @param cls: This class to reference class variables.
         @param tag: Tag that contains the <a> tag with the URL address.
-        @return: (string) rst_url - The URL address in form a string. 
+        @return: (string) url - The URL address in form of a string. 
         '''
-        rst_url = ''
+        url = ''
     
         try:
-            rst_url = tag_content.a.attrs[0][1]
-            if (not rst_url.startswith('http://')):
-                rst_url = cls.URL_PREFIX + rst_url
+            url = tag_content.a.attrs[0][1]
+            if (not url.startswith('http://')):
+                url = cls.URL_PREFIX + url
         except:
-            logger.warning('Could not find any url in tag_content "%s". Setting url to empty string', tag_content)
+            logger.warning('Could not find any url in tag_content "%s". Setting url to an empty string', tag_content)
             
-        return rst_url
+        return url
     
     @classmethod
     def pickleSoup(cls, soup, file_path):
