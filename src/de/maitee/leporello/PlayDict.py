@@ -72,7 +72,6 @@ class Play(dict, Lepistant):
         self.subtitle = self._setSubtitle()
         self.location = self._setLocation()
         self.dates = self._setDates()
-        self.performances = self._setPerformances()
 
         self.link = str()
         self.file_name_on_disk = str()
@@ -86,6 +85,7 @@ class Play(dict, Lepistant):
         self.photos = list()
         self.cast = dict()
         self.sponsors = list()
+        self.performances = list()
         
         self.play_detail_soup = None
         
@@ -144,8 +144,18 @@ class Play(dict, Lepistant):
         
         return location
     
+    def _getFurtherDates(self):
+        further_dates = list()
+        further_performance_tags = self.play_detail_soup.find('div', {"class": "further-performances"}).findAll('div')
+        print further_performance_tags
+        further_date = further_performance_tags[0]
+        print further_date
+    
     def _setPerformances(self):
         performances = list()
+        
+        self._getFurtherDates()
+        
         try:
             # Since "Theater Bremen" has always the same location for each play we can use same the location for each performance.
             for date in self.dates:
@@ -158,7 +168,7 @@ class Play(dict, Lepistant):
         except TypeError as terr:
             logger.warning('Failed to set performances for play "%s" due to: %s. Therefore setting performances to an empty list',self.title, str(terr))
             
-        return performances
+        self.performances = performances
     
     def _setSubtitle(self):
         subtitle = Lepistant.NOT_AVAILABLE
@@ -305,4 +315,5 @@ class Play(dict, Lepistant):
         self._setFurtherInfo()
         self._setSponsors()
         self._setCast()
+        self._setPerformances()
         

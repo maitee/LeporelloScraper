@@ -13,7 +13,7 @@ LOGGING_CONFIG = {
             'format': '%(levelname)s - (%(asctime)s) %(module)s [%(process)d %(thread)d]: %(message)s'
         }, 
         'simple': {
-            'format': '%(levelname)s - %(module)s %(lineno)s: %(message)s'
+            'format': '%(levelname)s - %(module)s %(lineno)s: %(message)s',
         }
     }, 
            
@@ -35,7 +35,7 @@ LOGGING_CONFIG = {
         'leporello': {
             'handlers': ['console', 'file'], 
             'propagate': True, 
-            'level': 'INFO'
+            'level': 'INFO',
         }, 
         'leporello.custom': {
             'handlers': ['console'], 

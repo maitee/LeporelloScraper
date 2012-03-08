@@ -21,5 +21,9 @@ class Performance(dict):
         self.type = None
         self.cast = dict()
         
-    # addMemberToCast
+        self.performance_detail_soup = None
         
+    # addMemberToCast
+    
+    
+#    def setPerformanceDetails(self, soup):
