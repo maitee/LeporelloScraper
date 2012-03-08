@@ -146,7 +146,7 @@ class Play(dict, Lepistant):
             # Set performance type only for the first date
             performances[0].type = self._getPerformanceTypeOfFirstPerformance()
         except TypeError as terr:
-            logger.warning('Failed to set performances for play "%s" due to: %s. Therefore setting performances to an empty list',self.title, str(terr), Lepistant.NOT_AVAILABLE)
+            logger.warning('Failed to set performances for play "%s" due to: %s. Therefore setting performances to an empty list',self.title, str(terr))
             
         return performances
     
@@ -206,7 +206,7 @@ class Play(dict, Lepistant):
                 subtree = soup.br
                 subtree.extract()
         except:
-            logger.warning('Failed to remove \<br\> tags from soup. Therefore returning the soup as it was. soup: %s', soup[:Lepistant.LOG_MESSAGE_LENGTH])
+            logger.warning('Failed to remove \<br\> tags from soup. Therefore returning the soup as it was. soup: %s', repr(soup[:Lepistant.LOG_MESSAGE_LENGTH]))
             
         return soup
     
@@ -216,7 +216,7 @@ class Play(dict, Lepistant):
         try:
             summary_paragraphs = self._getParagraphsForContent('Inhalt')
             self.summary = Lepistant.formatParagraphsToString(summary_paragraphs)
-            logger.info('%s - set summary: "%s..."', self.title, self.summary[:Lepistant.LOG_MESSAGE_LENGTH])
+            logger.info('%s - set summary: "%s..."', self.title, repr(self.summary[:Lepistant.LOG_MESSAGE_LENGTH]))
         except:
             logger.warning('Failed to set summary for play "%s". Therefore setting summary to %s.', self.title, Lepistant.NOT_AVAILABLE)
                 
@@ -226,7 +226,7 @@ class Play(dict, Lepistant):
         try:
             critics_paragraphs = self._getParagraphsForContent('Pressestimmen')
             self.critics = Lepistant.formatParagraphsToString(critics_paragraphs)
-            logger.info('%s - set critics: "%s..."', self.title, self.critics[:Lepistant.LOG_MESSAGE_LENGTH])
+            logger.info('%s - set critics: "%s..."', self.title, repr(self.critics[:Lepistant.LOG_MESSAGE_LENGTH]))
         except:
             logger.warning('Failed to set critics for play "%s". Therefore setting critics to %s.', self.title, Lepistant.NOT_AVAILABLE)
     
@@ -236,7 +236,7 @@ class Play(dict, Lepistant):
         try:
             further_info_paragraphs = self._getParagraphsForContent('Weitere Texte')
             self.further_info = Lepistant.formatParagraphsToString(further_info_paragraphs)
-            logger.info('%s - set further_info: "%s..."', self.title, self.further_info[:Lepistant.LOG_MESSAGE_LENGTH])
+            logger.info('%s - set further_info: "%s..."', self.title, repr(self.further_info[:Lepistant.LOG_MESSAGE_LENGTH]))
         except:
             logger.warning('Failed to set further_info for play "%s". Therefore setting further_info to %s.', self.title, Lepistant.NOT_AVAILABLE)
     
@@ -272,7 +272,6 @@ class Play(dict, Lepistant):
         cast = dict()
         
         try:
-            print('>>>>>>>>>> in PlayDict._setCast() <<<<<<<<<<')
             artist_item_tags = self.play_detail_soup.findAll('h4', text=re.compile('Besetzung'))[0].parent.findNextSiblings(['span', 'a', 'br'])
             artist_items = [list(tag[1]) for tag in groupby(artist_item_tags, lambda tag: str(tag) == '<br />') if not tag[0]]
             
