@@ -12,13 +12,15 @@ import os
 import pickle
 import urllib2
 import HTMLParser
-import logging.config
+import logging
 from pickle import PickleError
 # Third party libraries
 from BeautifulSoup import BeautifulSoup
 # Local libraries
 
+
 logger = logging.getLogger('leporello')
+
 
 class Lepistant(object):
     '''
@@ -43,6 +45,8 @@ class Lepistant(object):
     CSS_CLASS_CONTENT_ITEM = str()   # Set by setInfo()
     
     FILE_NAME_LEPORELLO = str()     # Set by setInfo()
+
+    LOG_MESSAGE_LENGTH = 100
 
     KEY_CSS_CLASS_CONTENT_ITEM = 'CSS_CLASS_CONTENT_ITEM'  
     KEY_THEATRE = 'theatre'
@@ -132,7 +136,7 @@ class Lepistant(object):
             # Check if there is a pickled rst_soup for file name.
             with open(file_path, 'rb') as from_file_name:
                 webpage = pickle.load(from_file_name)
-            logger.info('Retrieved webpage "%s" as a rst_soup string from disk.', file_path)
+            logger.info('Retrieved webpage "%s" as a soup string from disk.', file_path)
         except IOError as err:
             logger.warning('Failed to open file "%s" due to: %s', url, str(err))
             logger.info('Start downloading webpage from the internet instead')
