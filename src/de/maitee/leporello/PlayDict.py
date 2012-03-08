@@ -7,11 +7,16 @@ Created on Feb 27, 2012
 '''
 # Standard libraries
 import re
+import logging
 from itertools import groupby
 # Local libraries
 from LeporelloAssistant import Lepistant
 from ArtistDict import Artist
 from PerformanceDict import Performance
+
+
+logger = logging.getLogger('leporello')
+
 
 # Member names of producer's cast.
 PRODUCERS_CAST = [
@@ -83,44 +88,8 @@ class Play(dict, Lepistant):
         self.play_detail_soup = None
         
     # 'Private' methods:
-    def _setTitle(self):
-        try:
-            title_string = self.play_item_soup.h5.a.string
-            title = title_string.lstrip().rstrip()
-        except:
-            print('>>>>>>>>>> Could not find any title in play_item_soup: ' + str(self.play_item_soup))
-            print('>>>>>>>>>> Setting title to: ' + Lepistant.NOT_AVAILABLE)
-            title = Lepistant.NOT_AVAILABLE
-            
-        return title
-    
-    def _setSubtitle(self):
-        try:
-            subtitle_string = self.play_item_soup.p.string
-            subtitle = subtitle_string.lstrip().rstrip()
-        except:
-            print('>>>>>>>>>> Could not find any subtitle in play_item_soup: ' + str(self.play_item_soup))
-            print('>>>>>>>>>> Setting subtitle to: ' + Lepistant.NOT_AVAILABLE)
-            subtitle = Lepistant.NOT_AVAILABLE
-            
-        return subtitle
-    
-    def _setLocation(self):
-        try:
-            # location_string = "Neues Schauspielhaus / Termine: 10. | 14. | 18. September 2011, 01. | 16. | 22. Oktober 2011, 18. | 29. November 2011, 08. | 11. | 16. | 29. Dezember 2011, 27. Januar 2012, 03. | 10. | 15. | 26. Februar 2012, 27. März 2012"    
-            location_string = self.play_item_soup.findAll('p')[1].span.nextSibling
-            # Ignore warning since we only need the location_part anyway.
-            (location_part, seperator, dates_part) = location_string.partition('/')
-            location = location_part.lstrip().rstrip()
-        except:
-            print('>>>>>>>>>> Could not find any location in play_item_soup: ' + str(self.play_item_soup))
-            print('>>>>>>>>>> Setting location to: ' + Lepistant.NOT_AVAILABLE)
-            location = Lepistant.NOT_AVAILABLE
-        
-        return location
-    
     def _setDates(self):
-        dates = list()
+        rst_dates = list()
         try:
             dates_string = self.play_item_soup.findAll('p')[1].span.nextSibling
             # dates_string = "Neues Schauspielhaus / Termine: 10. | 14. | 18. September 2011, 01. | 16. | 22. Oktober 2011, 18. | 29. November 2011, 08. | 11. | 16. | 29. Dezember 2011, 27. Januar 2012, 03. | 10. | 15. | 26. Februar 2012, 27. März 2012"
@@ -141,27 +110,64 @@ class Play(dict, Lepistant):
                 for i in range(len(raw_dates) - 1):
                     # date = "10. September 2011"
                     date = raw_dates[i].lstrip() + month + ' ' + year
-                    dates.append(date)
+                    rst_dates.append(date)
                     
-                dates.append(raw_dates[-1])
+                rst_dates.append(raw_dates[-1])
         except:
-            print('>>>>>>>>>> Could not find any dates in play_item_soup: ' + str(self.play_item_soup))
-            print('>>>>>>>>>> Setting dates to an empty list')
+            logger.warning('Failed to set dates. Therefore settings dates to an empty list.')
         
-        return dates 
+        return rst_dates 
+    
+    def _setLocation(self):
+        try:
+            # location_string = "Neues Schauspielhaus / Termine: 10. | 14. | 18. September 2011, 01. | 16. | 22. Oktober 2011, 18. | 29. November 2011, 08. | 11. | 16. | 29. Dezember 2011, 27. Januar 2012, 03. | 10. | 15. | 26. Februar 2012, 27. März 2012"    
+            location_string = self.play_item_soup.findAll('p')[1].span.nextSibling
+            # Ignore warning since we only need the location_part anyway.
+            (location_part, seperator, dates_part) = location_string.partition('/')
+            location = location_part.lstrip().rstrip()
+        except:
+            logger.warning('Failed to set location. Therefore setting location to %s.', Lepistant.NOT_AVAILABLE)
+        else:
+            location = Lepistant.NOT_AVAILABLE
+        
+        return location
     
     def _setPerformances(self):
-        performances = list()
-    
-        # Since "Theater Bremen" has always the same location for each play we can use same location for each performance.
-        for date in self.dates:
-            performance = Performance(date, self.location)
-            performances.append(performance)
+        rst_performances = list()
+        try:
+            # Since "Theater Bremen" has always the same location for each play we can use same location for each performance.
+            for date in self.dates:
+                performance = Performance(date, self.location)
+                rst_performances.append(performance)
+                
+            # Set performance type only for the first date
+            rst_performances[0].type = self._getPerformanceTypeOfFirstPerformance()
+        except TypeError as terr:
+            logger.warning('Failed to set performances due to: %s. Therefore setting performances to an empty list', str(terr), Lepistant.NOT_AVAILABLE)
             
-        # Set performance type only for the first date
-        performances[0].type = self._getPerformanceTypeOfFirstPerformance()
-        
-        return performances
+        return rst_performances
+    
+    def _setSubtitle(self):
+        try:
+            subtitle_string = self.play_item_soup.p.string
+            subtitle = subtitle_string.lstrip().rstrip()
+        except:
+            logger.warning('Failed to set subtitle. Therefore setting subtitle to %s.', Lepistant.NOT_AVAILABLE)
+        else:
+            subtitle = Lepistant.NOT_AVAILABLE
+            
+        return subtitle
+    
+    def _setTitle(self):
+        try:
+            title_string = self.play_item_soup.h5.a.string
+            title = title_string.lstrip().rstrip()
+        except:
+            logger.error('Failed to set title.')
+        else:
+            title = Lepistant.NOT_AVAILABLE
+            
+        return title
     
     def _getPerformanceTypeOfFirstPerformance(self):
         try:
@@ -169,7 +175,8 @@ class Play(dict, Lepistant):
             # performance_type_string = "<h6>Premiere</h6>"
             performance_type = performance_type_string.lstrip().rstrip()
         except:
-            print('>>>>>>>>>> Could not find any performance type in play_item_soup: ' + str(self.play_item_soup))
+            logger.warning('Failed to set performance type. Therefore setting performance type to %s.', Lepistant.NOT_AVAILABLE)
+        else:
             performance_type = Lepistant.NOT_AVAILABLE
             
         return performance_type
@@ -179,52 +186,75 @@ class Play(dict, Lepistant):
 #    def _getPhotoURLLinksFrom(self, div):
     
     def _getParagraphsForContent(self, content):
-        paragraphs = self.play_detail_soup.find(text=content).findNext('div', {"class": 'toggleable-content-open'}).findAll('p')
-        
+        try:
+            paragraphs = self.play_detail_soup.find(text=content).findNext('div', {"class": 'toggleable-content-open'}).findAll('p')
+        except:
+            logger.warning('Failed to get paragraphs. Therefore returning an empty list.')
+        else:
+            paragraphs = list()
+            
         return paragraphs;
     
     def _removeBrTagsFromSoup(self, soup):
-        while soup.br:
-            subtree = soup.br
-            subtree.extract()
-        
+        try:
+            while soup.br:
+                subtree = soup.br
+                subtree.extract()
+        except:
+            logger.warning('Failed to remove \<br\> tags from soup. Therefore returning the soup as it was.')
+            
         return soup
     
     def _setSummary(self):
-        summary_paragraphs = self._getParagraphsForContent('Inhalt')
-        self.summary = Lepistant.formatParagraphsToString(summary_paragraphs)
-#        print self.summary
+        try:
+            summary_paragraphs = self._getParagraphsForContent('Inhalt')
+            self.summary = Lepistant.formatParagraphsToString(summary_paragraphs)
+        except:
+            logger.warning('Failed to set summary. Therefore setting summary to %s.', Lepistant.NOT_AVAILABLE)
+        else:
+            self.summary = Lepistant.NOT_AVAILABLE
                 
     def _setCritics(self):
-        critics_paragraphs = self._getParagraphsForContent('Pressestimmen')
-        self.critics = Lepistant.formatParagraphsToString(critics_paragraphs)
-#        print self.critics
+        try:
+            critics_paragraphs = self._getParagraphsForContent('Pressestimmen')
+            self.critics = Lepistant.formatParagraphsToString(critics_paragraphs)
+        except:
+            logger.warning('Failed to set critics. Therefore setting critics to %s.', Lepistant.NOT_AVAILABLE)
+        else:
+            self.critics = Lepistant.NOT_AVAILABLE
     
     def _setFurtherInfo(self):
-        further_info_paragraphs = self._getParagraphsForContent('Weitere Texte')
-        self.further_info = Lepistant.formatParagraphsToString(further_info_paragraphs)
-#        print self.further_info
+        try:
+            further_info_paragraphs = self._getParagraphsForContent('Weitere Texte')
+            self.further_info = Lepistant.formatParagraphsToString(further_info_paragraphs)
+        except:
+            logger.warning('Failed to set further info. Therefore setting further info to %s.', Lepistant.NOT_AVAILABLE)
+        else:
+            self.further_info = Lepistant.NOT_AVAILABLE
     
     def _setPhotos(self):
+        rst_photos = list()
         try:
             img_tags = self.play_detail_soup.find('div', {"class": "thumbnails"}).findAll('img')
             for img_tag in img_tags:
                 img_url = Lepistant.getURLFromImageTag(img_tag)
-                self.photos.append(img_url)
+                rst_photos.append(img_url)
         except AttributeError as attrerr:
-            print('>>>>>>>>>> Could not set photos due to: See next line.')
-            print('>>>>>>>>>> Could not find img tags due to: ' + str(attrerr))
+            logger.warning('Failed to set photos due to: %s. Therefore setting photos to an empty list.', str(attrerr))
+        
+        self.photos = rst_photos
     
     def _setSponsors(self):
+        rst_sponsors = list()
         try:
             img_tags = self.play_detail_soup.find('div', {"class": "sponsors clearfix"})
             for img_tag in img_tags:
                 img_url = Lepistant.getURLFromImageTag(img_tag)
-                self.sponsors.append(img_url)
+                rst_sponsors.append(img_url)
         except AttributeError as attrerr:
-            print('>>>>>>>>>> Could not set sponsors due to: See next line.')
-            print('>>>>>>>>>> Could not find img tags due to: ' + str(attrerr))
-    
+            logger.warning('Failed to set sponsor logos due to: %s. Therefore setting sponsors to an empty list.', str(attrerr))
+
+        self.sponsors = rst_sponsors
     
     def _setCast(self):
         try:
@@ -243,7 +273,7 @@ class Play(dict, Lepistant):
                 print('Added the role "' + role + '" to the producer\'s cast')
             
         except AttributeError as attrerr:
-            print('>>>>>>>>>> Could not set artist data due to parsing error in the soup: ' + str(attrerr))
+            logger.error('Failed to set cast due to: %s.', str(attrerr))
     
     # 'Public' methods:
     def setPlayDetails(self, soup):

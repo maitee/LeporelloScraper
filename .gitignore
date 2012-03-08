@@ -3,4 +3,5 @@
 .settings/
 downloads/
 *.pyc
+*.log
 
