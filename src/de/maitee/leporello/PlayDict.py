@@ -144,17 +144,34 @@ class Play(dict, Lepistant):
         
         return location
     
-    def _getFurtherDates(self):
-        further_dates = list()
-        further_performance_tags = self.play_detail_soup.find('div', {"class": "further-performances"}).findAll('div')
-        print further_performance_tags
-        further_date = further_performance_tags[0]
-        print further_date
+    def _getFurtherPerformances(self):
+        # Set locale time from en_US to de_DE for formatting calendar dates.
+        locale.setlocale(locale.LC_TIME, 'de_DE')
+        
+        perfomance_tuples = list()
+        
+        try:
+            performance_tags = self.play_detail_soup.find('div', {"class": "further-performances"}).findAll('div')
+            
+            for perfomance_tag in performance_tags:
+                date_link_tag = perfomance_tag.findAll('a', text=True)[0].parent
+                date_string = date_link_tag.string
+                date = datetime.datetime.strptime(date_string, '%a, %d.%m.%Y / %H.%M Uhr')
+                url = Lepistant.getURLFromLinkTag(date_link_tag)
+                performance_tuple = (date, url)
+                perfomance_tuples.append(performance_tuple)
+        except:
+            logger.warning('Failed to get further performances for play "%s". Therefore returning an empty list.', self.title)
+        
+        # Set locale time back from de_DE to en_US.
+        locale.setlocale(locale.LC_TIME, 'en_US')
+        
+        return perfomance_tuples
     
     def _setPerformances(self):
         performances = list()
         
-        self._getFurtherDates()
+        further_performances = self._getFurtherPerformances()
         
         try:
             # Since "Theater Bremen" has always the same location for each play we can use same the location for each performance.
