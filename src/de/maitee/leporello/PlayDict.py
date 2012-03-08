@@ -7,7 +7,9 @@ Created on Feb 27, 2012
 '''
 # Standard libraries
 import re
+import locale
 import logging
+import datetime
 from itertools import groupby
 # Local libraries
 from LeporelloAssistant import Lepistant
@@ -91,25 +93,30 @@ class Play(dict, Lepistant):
     def _setDates(self):
         dates = list()
         try:
+            # Set locale time from en_US to de_DE for formatting calendar dates.
+            locale.setlocale(locale.LC_TIME, 'de_DE')
+            
             dates_string = self.play_item_soup.findAll('p')[1].span.nextSibling
             # dates_string = "Neues Schauspielhaus / Termine: 10. | 14. | 18. September 2011, 01. | 16. | 22. Oktober 2011, 18. | 29. November 2011, 08. | 11. | 16. | 29. Dezember 2011, 27. Januar 2012, 03. | 10. | 15. | 26. Februar 2012, 27. März 2012"
             (location_part, seperator, dates_part) = dates_string.partition(':') 
-            # dates_per_month = "[' 10. | 14. | 18. September 2011', ' 01. | 16. | 22. Oktober 2011', ' 18. | 29. November 2011', ' 08. | 11. | 16. | 29. Dezember 2011', ' 27. Januar 2012', ' 03. | 10. | 15. | 26. Februar 2012', ' 27. M\xc3\xa4rz 2012']"
             dates_per_month = dates_part.split(',')
-            # dates_of_one_month = " 10. | 14. | 18. September 2011"
+            # dates_per_month = "[' 10. | 14. | 18. September 2011', ' 01. | 16. | 22. Oktober 2011', ' 18. | 29. November 2011', ' 08. | 11. | 16. | 29. Dezember 2011', ' 27. Januar 2012', ' 03. | 10. | 15. | 26. Februar 2012', ' 27. M\xc3\xa4rz 2012']"
             for dates_of_one_month in dates_per_month:
-                # raw_dates = "[' 10. ', ' 14. ', ' 18. September 2011']"
+            # dates_of_one_month = " 10. | 14. | 18. September 2011"
                 raw_dates = dates_of_one_month.split('|')
-                # raw_date_with_month_name = " 18. September 2011"
+                # raw_dates = "[' 10. ', ' 14. ', ' 18. September 2011']"
                 raw_date_with_month_name = raw_dates[-1]
-                # month = "September"
+                # raw_date_with_month_name = " 18. September 2011"
                 month = raw_date_with_month_name.split()[1]
-                # year = "2011"
+                # month = "September"
                 year = raw_date_with_month_name.split()[2]
-                # i = "0"
+                # year = "2011"
                 for i in range(len(raw_dates) - 1):
+                # i = "0"
                     # date = "10. September 2011"
-                    date = raw_dates[i].lstrip() + month + ' ' + year
+                    date_string = raw_dates[i].lstrip() + month + ' ' + year
+                    date = datetime.datetime.strptime(date_string, '%d. %B %Y')
+                    
                     dates.append(date)
                     
                 dates.append(raw_dates[-1])
@@ -117,6 +124,9 @@ class Play(dict, Lepistant):
         except:
             logger.warning('Failed to set dates for play "%s". Therefore setting dates to an empty list.', self.title)
         
+        # Set locale time back from de_DE to en_US.
+        locale.setlocale(locale.LC_TIME, 'en_US')
+            
         return dates 
     
     def _setLocation(self):
@@ -137,7 +147,7 @@ class Play(dict, Lepistant):
     def _setPerformances(self):
         performances = list()
         try:
-            # Since "Theater Bremen" has always the same location for each play we can use same location for each performance.
+            # Since "Theater Bremen" has always the same location for each play we can use same the location for each performance.
             for date in self.dates:
                 performance = Performance(date, self.location)
                 performances.append(performance)
@@ -283,8 +293,7 @@ class Play(dict, Lepistant):
             role = artist.producer_roles[-1]             
             if role and role in PRODUCERS_CAST:
                 cast[role] = artist
-                logger.info('%s - added artist  to producer\'s cast: {"%s": "%s"}', self.title, role, artist.full_name)
-                print('Added the role "' + role + '" to the producer\'s cast')
+                logger.info('%s - added artist to producer\'s cast: {"%s": "%s"}', self.title, role, artist.full_name)
         except AttributeError as attrerr:
             logger.error('Failed to set cast for play "%s" due to: %s.', self.title, str(attrerr))
     
