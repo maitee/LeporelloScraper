@@ -318,7 +318,9 @@ class Play(dict):
                 for img_tag in img_tags:
                     img_url = Lepistant.getURLFromImageTag(img_tag)
                     sponsors.append(img_url)
-            logger.info('%s - set sponsors: %s', self.title, sponsors)
+                logger.info('%s - set sponsors: %s', self.title, sponsors)
+            else:
+                logger.info('%s - Play does not have any sponsors. Therefore setting sponsors to an empty list.', self.title)
         except AttributeError as attrerr:
             logger.warning('Failed to set sponsor logos for play "%s" due to: %s. Therefore setting sponsors to an empty list.', self.title, str(attrerr))
 
@@ -329,19 +331,24 @@ class Play(dict):
         
         try:
             artist_item_tags = self.play_detail_soup.findAll('h4', text=re.compile('Besetzung'))[0].parent.findNextSiblings(['span', 'a', 'br'])
-            artist_items = [list(tag[1]) for tag in groupby(artist_item_tags, lambda tag: str(tag) == '<br />') if not tag[0]]
+            if artist_item_tags:
+                artist_items = [list(tag[1]) for tag in groupby(artist_item_tags, lambda tag: str(tag) == '<br />') if not tag[0]]
             
-            artist_data = artist_items[0]
+                artist_data = artist_items[0]
             
-            artist = Artist(artist_data)
-            # TODO: Check if this particular artist already exists. If he does only update his data
-            # Getting the last added producer role of this artist.
-            role = artist.producer_roles[-1]             
-            if role and role in PRODUCERS_CAST:
-                cast[role] = artist
-                logger.info('%s - added artist to producer\'s cast: {"%s": "%s"}', self.title, role, artist.full_name)
+                artist = Artist(artist_data)
+                # TODO: Check if this particular artist already exists. If he does only update his data
+                # Getting the last added producer role of this artist.
+                role = artist.producer_roles[-1]             
+                if role and role in PRODUCERS_CAST:
+                    cast[role] = artist
+                    logger.info('%s - added artist to producer\'s cast: {"%s": "%s"}', self.title, role, artist.full_name)
+            else:
+                logger.info('%s - Play does not have any cast. Therefore setting cast to an empty dictionary.', self.title)
+        except IndexError as ierr:
+            logger.warning('Failed to set cast for play "%s" due to: %s.', self.title, str(ierr))
         except AttributeError as attrerr:
-            logger.error('Failed to set cast for play "%s" due to: %s.', self.title, str(attrerr))
+            logger.warning('Failed to set cast for play "%s" due to: %s.', self.title, str(attrerr))
     
     # 'Public' methods:
     def setPlayDetails(self, soup):
