@@ -75,7 +75,8 @@ if __name__ == '__main__':
         leporello_info[PLAY_ITEMS] = playItems
         
         # Get only one play item for testing purposes
-        playItem = playItems[12]
+#        playItem = playItems[20]    # WirAlleAnders
+        playItem = playItems[12]    # AltArmArbeitslos
         play = Play(playItem)
         play.link = Lepistant.getURLFromTagContent(playItem)
         formatted_title = Lepistant.removeNonAlphanumericCharacters(play.title)
@@ -89,22 +90,22 @@ if __name__ == '__main__':
         
     #    pprint(play.__dict__)
         
-#        for playItem in playItems:
-#            play = Play(playItem)
-#            play.link = Lepistant.getURLFromTagContent(playItem)
-#            formatted_title = Lepistant.removeNonAlphanumericCharacters(play.title)
-#            play.file_path_on_disk = Lepistant.REL_PATH_PLAYS_FOLDER + formatted_title + '/'
-#            play.file_name_on_disk = Lepistant.createFilePath(
-#                                                play.file_path_on_disk, 
-#                                                play.title, 
-#                                                'html')
-#            soup = Lepistant.getSoup(play.link, play.file_name_on_disk)
-#            play.setPlayDetails(soup)
-#            
-#            logger.info('')
-#            logger.info('>>>>>>>>>>>>>>>>>>>>>>>> %s <<<<<<<<<<<<<<<<<<<<<<<<<', play.title)
-#            
-#            plays[play.title] = play
+        for playItem in playItems:
+            logger.info('>>>>>>>>>>>>>>>>>>>>>>>> Fetching new play <<<<<<<<<<<<<<<<<<<<<<<<<')
+            play = Play(playItem)
+            play.link = Lepistant.getURLFromTagContent(playItem)
+            formatted_title = Lepistant.removeNonAlphanumericCharacters(play.title)
+            play.file_path_on_disk = Lepistant.REL_PATH_PLAYS_FOLDER + formatted_title + '/'
+            play.file_name_on_disk = Lepistant.createFilePath(
+                                                play.file_path_on_disk, 
+                                                play.title, 
+                                                'html')
+            soup = Lepistant.getSoup(play.link, play.file_name_on_disk)
+            play.setPlayDetails(soup)
+            
+            logger.info('')
+            
+            plays[play.title] = play
         
     #    play = createPlay(title)
     #    getLocationFromPlayItem()
