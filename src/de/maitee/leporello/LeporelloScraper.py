@@ -78,8 +78,9 @@ if __name__ == '__main__':
         playItem = playItems[12]
         play = Play(playItem)
         play.link = Lepistant.getURLFromTagContent(playItem)
+        play.file_path_on_disk = Lepistant.REL_PATH_PLAYS_FOLDER + play.title + '/'
         play.file_name_on_disk = Lepistant.createFilePath(
-                                                Lepistant.REL_PATH_PLAYS_FOLDER, 
+                                                play.file_path_on_disk, 
                                                 play.title, 
                                                 'html')
         soup = Lepistant.getSoup(play.link, play.file_name_on_disk)

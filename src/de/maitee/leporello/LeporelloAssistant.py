@@ -239,7 +239,7 @@ class Lepistant(object):
         @param fileName: The file name under which the soup should be pickled.
         '''
         # Extracting the folder_path from the file_path
-        # file_path: '../../../../downloads/plays/AltArmArbeitslos.html' > folder_paty: '../../../../downloads/plays/' 
+        # file_path: '../../../../downloads/plays/AltArmArbeitslos/AltArmArbeitslos.html' > folder_path: '../../../../downloads/plays/AltArmArbeitslos/' 
         folder_path =  file_path.rsplit('/', 1)[0]
         # Create 'downloads' directory for saving files if the directory does not exist.
         if not os.path.isdir(folder_path):
@@ -256,6 +256,7 @@ class Lepistant(object):
             try:
                 with open(file_path, 'wb') as to_file_path:
                     pickle.dump(str(soup), to_file_path)
+                    logger.info('Pickled soup under file "%s" to disk.', file_path)
             except PickleError as perr:
                 logger.warning('Failed to pickle soup due to: %s', str(perr))
     
