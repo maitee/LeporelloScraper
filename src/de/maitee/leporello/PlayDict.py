@@ -131,7 +131,9 @@ class Play(dict):
         
         # Set locale time back from de_DE to en_US.
         locale.setlocale(locale.LC_TIME, 'en_US')
-            
+        
+        logger.info('')
+         
         return dates 
     
     def _setLocation(self):
@@ -146,6 +148,8 @@ class Play(dict):
             logger.info('%s - set location: "%s"', self.title, location)
         except:
             logger.warning('Failed to set location for play "%s". Therefore setting location to %s.', self.title, Lepistant.NOT_AVAILABLE)
+        
+        logger.info('')
         
         return location
     
@@ -214,6 +218,8 @@ class Play(dict):
             logger.info('%s - set subtitle: "%s"', self.title, subtitle)
         except:
             logger.warning('Failed to set subtitle for play "%s". Therefore setting subtitle to %s.',self.title, Lepistant.NOT_AVAILABLE)
+        
+        logger.info('')
             
         return subtitle
     
@@ -226,7 +232,9 @@ class Play(dict):
             logger.info('%s - set title: "%s"', title, title)
         except:
             logger.error('Failed to set title.')
-            
+        
+        logger.info('')
+        
         return title
     
     def _getPerformanceTypeOfFirstPerformance(self):
@@ -353,11 +361,18 @@ class Play(dict):
     # 'Public' methods:
     def setPlayDetails(self, soup):
         self.play_detail_soup = soup
+        logger.info('')
         self._setSummary()
+        logger.info('')
         self._setCritics()
+        logger.info('')
         self._setFurtherInfo()
+        logger.info('')
         self._setSponsors()
+        logger.info('')
         self._setCast()
+        logger.info('')
         self._setPerformances()
+        logger.info('')
         self._setDetailsForPerformances()
         
