@@ -20,7 +20,7 @@ from PerformanceDict import Performance
 logger = logging.getLogger('leporello')
 
 
-# Member names of producer's cast.
+# Member names of producer's producers_cast.
 PRODUCERS_CAST = [
                   'Ausstattung', 
                   'Bühne', 
@@ -71,7 +71,7 @@ class Play(dict):
         self.play_item_soup = play_item_soup
         self.title = self._setTitle()
         self.subtitle = self._setSubtitle()
-        self.location = self._setLocation()
+        self.location = self._updateLocation()
         self.dates = self._setDates()
 
         self.link = str()
@@ -85,7 +85,8 @@ class Play(dict):
         self.critics = str()
         self.video = str()
         self.photos = list()
-        self.cast = dict()
+        self.producers_cast = dict()
+        self.default_artist_cast = dict()
         self.sponsors = list()
         self.performances = dict()
         
@@ -96,7 +97,7 @@ class Play(dict):
         dates = list()
         try:
             # Set locale time from en_US to de_DE for formatting calendar dates.
-            locale.setlocale(locale.LC_TIME, 'de_DE')
+            locale.setlocale(locale.LC_TIME, 'de_DE.utf-8')
             
             dates_string = self.play_item_soup.findAll('p')[1].span.nextSibling
             # dates_string = "Neues Schauspielhaus / Termine: 10. | 14. | 18. September 2011, 01. | 16. | 22. Oktober 2011, 18. | 29. November 2011, 08. | 11. | 16. | 29. Dezember 2011, 27. Januar 2012, 03. | 10. | 15. | 26. Februar 2012, 27. März 2012"
@@ -126,17 +127,21 @@ class Play(dict):
                 last_date = datetime.datetime.strptime(last_date_unformatted, '%d. %B %Y')
                 dates.append(last_date)
             logger.info('%s - set dates: %s', self.title, dates)
+        except ValueError as verr:
+            logger.error('Failed to format date "%s" for play "%s" due to: %s', date_string, self.title, str(verr))
         except:
-            logger.warning('Failed to set dates for play "%s". Therefore setting dates to an empty list.', self.title)
+            logger.error('')
+            logger.error('Failed to set dates for play "%s". Therefore setting dates to an empty list.', self.title)
+            logger.error('')
         
         # Set locale time back from de_DE to en_US.
-        locale.setlocale(locale.LC_TIME, 'en_US')
+        locale.setlocale(locale.LC_TIME, 'en_US.utf-8')
         
         logger.info('')
          
         return dates 
     
-    def _setLocation(self):
+    def _updateLocation(self):
         location = Lepistant.NOT_AVAILABLE
         
         try:
@@ -155,7 +160,7 @@ class Play(dict):
     
     def _getFurtherPerformances(self):
         # Set locale time from en_US to de_DE for formatting calendar dates.
-        locale.setlocale(locale.LC_TIME, 'de_DE')
+        locale.setlocale(locale.LC_TIME, 'de_DE.utf-8')
         
         perfomance_tuples = list()
         
@@ -173,7 +178,7 @@ class Play(dict):
             logger.warning('Failed to get further performances for play "%s". Therefore returning an empty list.', self.title)
         
         # Set locale time back from de_DE to en_US.
-        locale.setlocale(locale.LC_TIME, 'en_US')
+        locale.setlocale(locale.LC_TIME, 'en_US.utf-8')
         
         return perfomance_tuples
     
@@ -188,8 +193,9 @@ class Play(dict):
                 file_path = Lepistant.createFilePath(self.file_path_on_disk, str(date_time), 'performance')
                 soup = Lepistant.getSoup(url, file_path)
                 if date_time in self.performances:
+                    # Updating the date with a more precise date including Weekday and Time.
                     performance = self.performances[date_time]
-                    performance.setDetails(url)
+                    performance.setDetails(soup, self.title)
         
         print('===========================')
     
@@ -198,17 +204,20 @@ class Play(dict):
         
         try:
             # Since "Theater Bremen" has always the same location for each play we can use the same location for each performance.
-            for date in self.dates:
-                performance = Performance(date, self.location)
-                performances[date] = performance
-                logger.info('%s - added performance: %s', self.title, performance.__dict__)
-                
-            # Set performance type only for the first date
-            first_performance = performances[self.dates[0]]
-            first_performance.type = self._getPerformanceTypeOfFirstPerformance()
-            logger.info('%s - set type to "%s" of performance: %s', self.title, first_performance.type, first_performance.__dict__)
+            if self.dates:
+                for date in self.dates:
+                    performance = Performance(date, self.location)
+                    performances[date] = performance
+                    logger.info('%s - added performance: %s', self.title, performance.__dict__)
+                    
+                # Set performance type only for the first date
+                first_performance = performances[self.dates[0]]
+                first_performance.type = self._getPerformanceTypeOfFirstPerformance()
+                logger.info('%s - set type to "%s" of performance: %s', self.title, first_performance.type, first_performance.__dict__)
+            else:
+                logger.warning('Failed to set performances for play "%s" because no dates were found. Therefore setting performances to an empty list', self.title)
         except TypeError as terr:
-            logger.warning('Failed to set performances for play "%s" due to: %s. Therefore setting performances to an empty list',self.title, str(terr))
+            logger.warning('Failed to set performances for play "%s" due to: %s. Therefore setting performances to an empty list', self.title, str(terr))
             
         self.performances = performances
         
@@ -355,13 +364,13 @@ class Play(dict):
                 role = artist.producer_roles[-1]             
                 if role and role in PRODUCERS_CAST:
                     cast[role] = artist
-                    logger.info('%s - added artist to producer\'s cast: {"%s": "%s"}', self.title, role, artist.full_name)
+                    logger.info('%s - added artist to producer\'s producers_cast: {"%s": "%s"}', self.title, role, artist.full_name)
             else:
-                logger.info('%s - Play does not have any cast. Therefore setting cast to an empty dictionary.', self.title)
+                logger.info('%s - Play does not have any producers_cast. Therefore setting producers_cast to an empty dictionary.', self.title)
         except IndexError as ierr:
-            logger.warning('Failed to set cast for play "%s" due to: %s.', self.title, str(ierr))
+            logger.warning('Failed to set producers_cast for play "%s" due to: %s.', self.title, str(ierr))
         except AttributeError as attrerr:
-            logger.warning('Failed to set cast for play "%s" due to: %s.', self.title, str(attrerr))
+            logger.warning('Failed to set producers_cast for play "%s" due to: %s.', self.title, str(attrerr))
     
     # 'Public' methods:
     def setPlayDetails(self, soup):
