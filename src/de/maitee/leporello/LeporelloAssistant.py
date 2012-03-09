@@ -159,6 +159,8 @@ class Lepistant(object):
             try:
                 # Get HTML code from the URL addresss.
                 webpage = urllib2.urlopen(url)
+            except ValueError as verr:
+                logger.warning('Failed to fetch webpage "%s" due to: %s', url, str(verr))
             except urllib2.URLError as urlerr:
                 logger.error('Failed to fetch webpage "%s" due to: %s', url, str(urlerr))
         except pickle.PickleError as perr:
