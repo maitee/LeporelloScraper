@@ -145,11 +145,11 @@ class Lepistant(object):
         @return: (string) soup -A soup in form of a string, if succeeded and an empty string, 
         if no soup could be fetched
         '''
-        rst_soup = ''
+        soup = ''
         webpage = ''
         
         try:
-            # Check if there is a pickled rst_soup for file name.
+            # Check if there is a pickled soup for file name.
             with open(file_path, 'rb') as from_file_name:
                 webpage = pickle.load(from_file_name)
             logger.info('Retrieved webpage "%s" as a soup string from disk.', file_path)
@@ -165,14 +165,14 @@ class Lepistant(object):
             logger.warning('Failed to pickle webpage "%s" due to: %s', url, str(perr))
          
         try:
-            # Cook a rst_soup from the fetched HTML code of the webpage.    
-            rst_soup = BeautifulSoup(webpage)
-            # Pickle rst_soup content for later usage.
-            Lepistant.pickleSoup(rst_soup, file_path)
+            # Cook a soup from the fetched HTML code of the webpage.    
+            soup = BeautifulSoup(webpage)
+            # Pickle soup content for later usage.
+            Lepistant.pickleSoup(soup, file_path)
         except HTMLParser.HTMLParseError as htmlerr:
-            logger.warning('Failed to parse rst_soup from "%s" due to: ', file_path, str(htmlerr))
+            logger.warning('Failed to parse soup from "%s" due to: ', file_path, str(htmlerr))
             
-        return rst_soup
+        return soup
     
     @classmethod
     def getTagsByClass(cls, soup, tag, css_class):
@@ -257,14 +257,13 @@ class Lepistant(object):
         # Extracting the folder_path from the file_path
         # file_path: '../../../../downloads/plays/AltArmArbeitslos/AltArmArbeitslos.html' > folder_path: '../../../../downloads/plays/AltArmArbeitslos/' 
         folder_path =  file_path.rsplit('/', 1)[0]
-        # Create 'downloads' directory for saving files if the directory does not exist.
+        # Create parent directory for saving files if the directory does not exist.
         if not os.path.isdir(folder_path):
             try:
                 os.makedirs(folder_path)
+                logger.info('Created folder: %s', folder_path)
             except OSError as oserr:
                 logger.warning('Failed to create folder "%s" due to: %s', folder_path, str(oserr))
-            else:
-                return
         
         # Only pickle file if the file does not exist.
         file_exists = os.path.isfile(file_path)
