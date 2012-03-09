@@ -68,32 +68,48 @@ class Lepistant(object):
     
     # Class methods:
     @classmethod
+    def removeNonAlphanumericCharacters(cls, string):
+        '''
+        Removes all non-alphanumeric characters from a string.
+        @param cls: This class to reference class properties.
+        @param string: The string from which to remove non-alphanumeric characters.
+        @return formatted_string: The string without non-alphanumeric characters. 
+        '''
+        formatted_string = str()
+        # TODO: Implement a condition instead of exception to handle correct method according 
+        # to the used python version. The UNICODE flag is only supported for python >= 2.7
+        # Removing all non-alphanumeric characters and appending the suffix.
+        try:
+            formatted_string = re.sub(r"\W+", "", string, 0, re.UNICODE)
+        except TypeError as terr:
+            logger.warning('Failed to remove non-alphanumeric characters from string "%s" due to: %s', string, str(terr))
+            formatted_string = re.sub(r"\W+", "", string)
+            
+        return formatted_string
+    
+    @classmethod
     def createFilePath(cls, path, name, suffix):
         '''
         Creates a file path including the file name for pickling any kind of text files (webpages) 
         by removing all non-alphanumeric characters from the name.
-        @param cls: This class to reference class variables.
+        @param cls: This class to reference class properties.
         @param path: The path to the directory in which the file will be pickled.
         @param name: The name that will be formatted so it it can be used as the file name.
         @param suffix: The suffix of the file name, e.g. '.html', '.txt', ... .
         @return: (string) file_path - A formatted file path that can be used for pickling a file.
         '''
-        # TODO: Implement a condition instead of exception to handle correct method according 
-        # to the python version. The UNICODE flag is only supported for python >= 2.7
-        # Removing all non-alphanumeric characters and appending the suffix.
-        try:
-            file_path = path + re.sub(r"\W+", "", name, 0, re.UNICODE) + '.' + suffix
-        except TypeError as terr:
-            file_path = path + re.sub(r"\W+", "", name) + '.' + suffix
+        
+        file_path = path + cls.removeNonAlphanumericCharacters(name) + '.' + suffix
         
         logger.info('Created file path: %s', file_path)
+        
         return file_path
     
     @classmethod
     def formatParagraphsToString(cls, paragraphs):
         '''
         Formats text from several paragraphs to one string and replaces \<br\> tags with \\n.
-        @param cls: This class to reference class variables.
+        @param cls: This class to reference class properties.
         @param paragraphs: (list) The paragraphs that will be formatted to one text/string.  
         @return: (string) A newly formatted string that contains all the text from the paragraphs.
         '''
@@ -122,7 +138,7 @@ class Lepistant(object):
     def getSoup(cls, url, file_path):
         '''
         Gets soup from a webpage/file and pickles the soup if it was fetched from a webpage.
-        @param cls: This class to reference class variables.
+        @param cls: This class to reference class properties.
         @param url: URL of the webpage from which to fetch the soup.
         @param fileName: File name of pickled soup, if it was pickled before otherwise it is 
         used as the file name under which the fetched soup will be pickled.
@@ -162,7 +178,7 @@ class Lepistant(object):
     def getTagsByClass(cls, soup, tag, css_class):
         '''
         Gets all tags that uses a specific CSS class.
-        @param cls: This class to reference class variables.
+        @param cls: This class to reference class properties.
         @param soup: The soup containin the HTML code that will be inspected.
         @param tag: The HTML tag that uses the specified CSS class.
         @param css_class: 
@@ -179,7 +195,7 @@ class Lepistant(object):
     def getURLFromImageTag(cls, img_tag):
         '''
         Gets the URL of the image (jpg, png or gif)
-        @param cls: This class to reference class variables.
+        @param cls: This class to reference class properties.
         @param img_tag: The image tag that contains the url in its src attribute.
         '''
         rst_url = cls.NOT_AVAILABLE
@@ -196,7 +212,7 @@ class Lepistant(object):
     def getURLFromLinkTag(cls, link):
         '''
         Gets the URL from a link ('<a>' tag).
-        @param cls: This class to reference class variables.
+        @param cls: This class to reference class properties.
         @param tag: Link ('<a>' tag) that contains the URL address.
         @return: (string) url - The URL address in form of a string. 
         '''
@@ -215,7 +231,7 @@ class Lepistant(object):
     def getURLFromTagContent(cls, tag_content):
         '''
         Gets the URL of a link ('<a>' tag) from an HTML tag.
-        @param cls: This class to reference class variables.
+        @param cls: This class to reference class properties.
         @param tag: Tag that contains the <a> tag with the URL address.
         @return: (string) url - The URL address in form of a string. 
         '''
@@ -234,7 +250,7 @@ class Lepistant(object):
     def pickleSoup(cls, soup, file_path):
         '''
         Pickles a soup in form of string for later usage.
-        @param cls: This class to reference class variables.
+        @param cls: This class to reference class properties.
         @param soup: The soup to pickle.
         @param fileName: The file name under which the soup should be pickled.
         '''
