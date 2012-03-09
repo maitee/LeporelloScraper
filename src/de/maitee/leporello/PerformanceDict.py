@@ -4,8 +4,11 @@ Created on Feb 27, 2012
 @author: kms
 '''
 
-
+import logging
 import datetime
+
+
+logger = logging.getLogger('leporello')
 
 
 class Performance(dict):
@@ -24,17 +27,34 @@ class Performance(dict):
         self.location = location
         
         self.type = None
-        self.cast = dict()
+        self.producers_cast = None
         
         self.soup = None
         
-        
-    def setDetails(self, soup):
-        self.soup = soup
-        print('================ in PerformanceDict ==============')
-    
     
     # 'Private' methods:
+    def _updateLocation(self, title):
+        try:
+            location_p_tag = self.soup.find('h3', text=title).parent.findNextSiblings('p')[1]
+            location = location_p_tag.text
+            self.location = location
+            logger.info('Updated location to "%s" of performance.', self.location)
+        except:
+            logger.warning('Failed to update location. Keep default location: %s', self.location)
+            
+        logger.info('')
+        
+    def _setCast(self):
+        pass
+        
+        
+    # 'Public' methods:
+    def setDetails(self, soup, title):
+        self.soup = soup
+        
+        self._updateLocation(title)
+        self._setCast()
+    
     
     
 #    def setPerformanceDetails(self, soup):
