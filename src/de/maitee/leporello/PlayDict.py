@@ -180,20 +180,21 @@ class Play(dict):
     def _setDetailsForPerformances(self):
         performance_tuples = self._getFurtherPerformances()
         
-        for tuple in performance_tuples:
-            date = tuple[0]
-            url = tuple[1]
-#            file_path = Lepistant.createFilePath(path, name, suffix)
-#            soup = Lepistant.getSoup(url, file_path)
-            if date in self.performances:
-                performance =self.performances[date].setDetails(url)
+        if performance_tuples:
+            for tuple in performance_tuples:
+                date = tuple[0]
+                date_time = datetime.datetime(date.year, date.month, date.day)
+                url = tuple[1]
+                file_path = Lepistant.createFilePath(self.file_path_on_disk, str(date_time), 'performance')
+                soup = Lepistant.getSoup(url, file_path)
+                if date_time in self.performances:
+                    performance = self.performances[date_time]
+                    performance.setDetails(url)
         
         print('===========================')
     
     def _setPerformances(self):
         performances = dict()
-        
-        further_performances = self._getFurtherPerformances()
         
         try:
             # Since "Theater Bremen" has always the same location for each play we can use the same location for each performance.
@@ -203,11 +204,15 @@ class Play(dict):
                 logger.info('%s - added performance: %s', self.title, performance.__dict__)
                 
             # Set performance type only for the first date
-            performances[self.dates[0]].type = self._getPerformanceTypeOfFirstPerformance()
+            first_performance = performances[self.dates[0]]
+            first_performance.type = self._getPerformanceTypeOfFirstPerformance()
+            logger.info('%s - set type to "%s" of performance: %s', self.title, first_performance.type, first_performance.__dict__)
         except TypeError as terr:
             logger.warning('Failed to set performances for play "%s" due to: %s. Therefore setting performances to an empty list',self.title, str(terr))
             
         self.performances = performances
+        
+        self._setDetailsForPerformances()
     
     def _setSubtitle(self):
         subtitle = Lepistant.NOT_AVAILABLE
