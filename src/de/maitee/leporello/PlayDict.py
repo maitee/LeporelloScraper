@@ -57,7 +57,7 @@ PRODUCERS_CAST = [
                   'Visuelle Gestaltung', 
                   ]
 
-class Play(dict, Lepistant):
+class Play(dict):
     '''
     classdocs
     '''
@@ -67,6 +67,7 @@ class Play(dict, Lepistant):
         Constructor
         '''
         dict.__init__({})
+        
         self.play_item_soup = play_item_soup
         self.title = self._setTitle()
         self.subtitle = self._setSubtitle()
@@ -74,6 +75,7 @@ class Play(dict, Lepistant):
         self.dates = self._setDates()
 
         self.link = str()
+        self.file_path_on_disk = str()
         self.file_name_on_disk = str()
         
         self.author = str()
@@ -85,7 +87,7 @@ class Play(dict, Lepistant):
         self.photos = list()
         self.cast = dict()
         self.sponsors = list()
-        self.performances = list()
+        self.performances = dict()
         
         self.play_detail_soup = None
         
@@ -118,8 +120,11 @@ class Play(dict, Lepistant):
                     date = datetime.datetime.strptime(date_string, '%d. %B %Y')
                     
                     dates.append(date)
-                    
-                dates.append(raw_dates[-1])
+                
+                # Formatting the last date in the list: "18. September 2011"
+                last_date_unformatted = raw_dates[-1].lstrip().rstrip()
+                last_date = datetime.datetime.strptime(last_date_unformatted, '%d. %B %Y')
+                dates.append(last_date)
             logger.info('%s - set dates: %s', self.title, dates)
         except:
             logger.warning('Failed to set dates for play "%s". Therefore setting dates to an empty list.', self.title)
@@ -168,20 +173,33 @@ class Play(dict, Lepistant):
         
         return perfomance_tuples
     
+    def _setDetailsForPerformances(self):
+        performance_tuples = self._getFurtherPerformances()
+        
+        for tuple in performance_tuples:
+            date = tuple[0]
+            url = tuple[1]
+#            file_path = Lepistant.createFilePath(path, name, suffix)
+#            soup = Lepistant.getSoup(url, file_path)
+            if date in self.performances:
+                performance =self.performances[date].setDetails(url)
+        
+        print('===========================')
+    
     def _setPerformances(self):
-        performances = list()
+        performances = dict()
         
         further_performances = self._getFurtherPerformances()
         
         try:
-            # Since "Theater Bremen" has always the same location for each play we can use same the location for each performance.
+            # Since "Theater Bremen" has always the same location for each play we can use the same location for each performance.
             for date in self.dates:
                 performance = Performance(date, self.location)
-                performances.append(performance)
-                logger.info('%s - set performance: %s', self.title, performance.__dict__)
+                performances[date] = performance
+                logger.info('%s - added performance: %s', self.title, performance.__dict__)
                 
             # Set performance type only for the first date
-            performances[0].type = self._getPerformanceTypeOfFirstPerformance()
+            performances[self.dates[0]].type = self._getPerformanceTypeOfFirstPerformance()
         except TypeError as terr:
             logger.warning('Failed to set performances for play "%s" due to: %s. Therefore setting performances to an empty list',self.title, str(terr))
             
@@ -296,9 +314,10 @@ class Play(dict, Lepistant):
         
         try:
             img_tags = self.play_detail_soup.find('div', {"class": "sponsors clearfix"})
-            for img_tag in img_tags:
-                img_url = Lepistant.getURLFromImageTag(img_tag)
-                sponsors.append(img_url)
+            if img_tags:
+                for img_tag in img_tags:
+                    img_url = Lepistant.getURLFromImageTag(img_tag)
+                    sponsors.append(img_url)
             logger.info('%s - set sponsors: %s', self.title, sponsors)
         except AttributeError as attrerr:
             logger.warning('Failed to set sponsor logos for play "%s" due to: %s. Therefore setting sponsors to an empty list.', self.title, str(attrerr))
@@ -333,4 +352,5 @@ class Play(dict, Lepistant):
         self._setSponsors()
         self._setCast()
         self._setPerformances()
+        self._setDetailsForPerformances()
         
