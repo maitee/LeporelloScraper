@@ -12,8 +12,8 @@ from pprint import pprint
 # Third party libraries
 # Local libraries
 import LoggingConfig
-from LeporelloDict import Leporello
 from PlayDict import Play
+from LeporelloDict import Leporello
 from LeporelloAssistant import Lepistant
 
 
@@ -59,8 +59,7 @@ if __name__ == '__main__':
                       }
     
     def getPlays(leporello_info):
-        # Initializing the leporello in form of an empty dictionary in which we add our data.
-        leporello = Leporello()
+        plays = []
         
         # Initializing the Leporello Assistent with meta information for web scraping.
         Lepistant.setInfo(leporello_info)
@@ -88,6 +87,7 @@ if __name__ == '__main__':
                                                 'html')
         soup = Lepistant.getSoup(play.link, play.file_name_on_disk)
         play.setPlayDetails(soup)
+        plays.append(play)
         
     #    pprint(play.__dict__)
         
@@ -106,7 +106,7 @@ if __name__ == '__main__':
 #            
 #            logger.info('')
 #            
-#            leporello.plays[play.title] = play
+#            plays.append(play)
         
     #    play = createPlay(title)
     #    getLocationFromPlayItem()
@@ -116,9 +116,14 @@ if __name__ == '__main__':
     #    print dates
         
         return plays
+        
+        
+        
+        
+        
     
     
-    # Starting ou leporello_info scraper
+    # Starting our leporello_info scraper
     plays = getPlays(leporello_info)
-    #pprint(plays)
+    pprint(plays)
     logger.info('Finished parsing leporello.')

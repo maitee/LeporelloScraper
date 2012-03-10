@@ -1,3 +1,5 @@
+# coding: utf-8
+
 '''
 Created on Mar 5, 2012
 
@@ -10,6 +12,7 @@ import logging
 from itertools import groupby
 # Local libraries
 import PlayDict
+from LeporelloDict import Leporello
 from LeporelloAssistant import Lepistant
 
 
@@ -25,6 +28,8 @@ class Artist(dict):
     def __init__(self, data_list):
         '''
         Constructor
+        @param data_list: A list in a form of "[<span class="eventDetailPersonRole">Regie:&nbsp;</span>, 
+                                                <a href="/de_DE/person/59253" class="eventDetailPersonLink" title="Volker L�sch">Volker L�sch</a>]".
         '''
         dict.__init__({})
         
@@ -39,21 +44,23 @@ class Artist(dict):
         self.photo = None
         self.biography = None
         self.appearances = None
-        self.soup_details = None
         
+        self.soup_details = None
         self.data_list = self._setData(data_list)
         
     # 'Private' methods:
-    def _setRole(self, role):
-        if role and role in PlayDict.PRODUCERS_CAST:
-            self.producer_roles.append(role)
-            logger.info('%s - added "%s" to producer_roles.', self.full_name, role)
-        else:
-            self.artist_roles.append(role)
-            logger.info('%s - added "%s" to artist_roles.', self.full_name, role)
+    def _addRole(self, role):
+        if role:
+            if role in PlayDict.PRODUCERS_CAST and not role in self.producer_roles:
+                self.producer_roles.append(role)
+                logger.info('%s - added new role "%s" to producer_roles.', self.full_name, role)
+            else:
+                if role not in self.artist_roles:
+                    self.artist_roles.append(role)
+                    logger.info('%s - added new "%s" to artist_roles.', self.full_name, role)
     
     def _setData(self, data_list):
-        role = Lepistant.NOT_AVAILABLE
+        role = None
         full_name = ''
         url = Lepistant.NOT_AVAILABLE
         
@@ -64,19 +71,30 @@ class Artist(dict):
                 try:
                     role = element.string.split(':')[0]
                 except:
-                    logger.warning('%s - set role to "%s" since no role could be find in data_list: %s', role, data_list)
+                    logger.info('Setting role to "%s" since no role could be find in data_list: %s', role, data_list)
             elif 'class="eventDetailPersonLink"' in str(element):
                 full_name = element.string
                 url = Lepistant.URL_PREFIX + re.search('href=\"(.+?)\"', str(element)).group(1)
         
-        self._setName(full_name)
-        if role:
-            self._setRole(role)
-        if url:
-            file_path = Lepistant.createFilePath(Lepistant.REL_PATH_ARTISTS_FOLDER, full_name, 'html')
-            soup = Lepistant.getSoup(url, file_path)
-            self._setDetails(soup)
+        # Check if artist already exists.
+        artist = self
+        print Leporello.artists
+        if full_name in Leporello.artists:
+            artist = Leporello.artists[full_name]
+        else:
+            self._setName(full_name)
+            if url:
+                file_path = Lepistant.createFilePath(Lepistant.REL_PATH_ARTISTS_FOLDER, full_name, 'html')
+                soup = Lepistant.getSoup(url, file_path)
+                self._setDetails(soup)
             
+        if role:
+            artist._addRole(role)
+            
+        # Add artist to the leporello artists dictionary so we can check later if the artist already exists.
+        # If the artist exists we only update his data.
+        Leporello.artists[self.full_name] = self
+        
         return data_list
     
     def _setName(self, name):

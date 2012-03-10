@@ -60,6 +60,8 @@ class Lepistant(object):
     
     URL_PREFIX = str()              # Set by setInfo()
     
+#    _leporello_instance = None
+    
     def __init__(self, leporello_info):
         '''
         Constructor
@@ -67,6 +69,14 @@ class Lepistant(object):
         
     
     # Class methods:
+#    @classmethod
+#    def getLeporelloInstance(cls):
+#        if not Lepistant._leporello_instance:
+#            Lepistant._leporello_instance = Leporello()
+#            
+#        return Lepistant._leporello_instance
+            
+    
     @classmethod
     def removeNonAlphanumericCharacters(cls, string):
         '''
@@ -160,7 +170,7 @@ class Lepistant(object):
                 # Get HTML code from the URL addresss.
                 webpage = urllib2.urlopen(url)
             except ValueError as verr:
-                logger.warning('Failed to fetch webpage "%s" due to: %s', url, str(verr))
+                logger.warning('Failed to fetch webpage due to: %s', str(verr))
             except urllib2.URLError as urlerr:
                 logger.error('Failed to fetch webpage "%s" due to: %s', url, str(urlerr))
         except pickle.PickleError as perr:
