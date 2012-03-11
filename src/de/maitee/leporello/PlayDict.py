@@ -20,7 +20,7 @@ from PerformanceDict import Performance
 logger = logging.getLogger('leporello')
 
 
-# Member names of producer's producers_cast.
+# Member names of producer's producer_cast.
 PRODUCERS_CAST = [
                   'Ausstattung', 
                   'Bühne', 
@@ -85,8 +85,8 @@ class Play(dict):
         self.critics = str()
         self.video = str()
         self.photos = list()
-        self.producers_cast = None                  # dict
-        self.default_artist_cast = None             # dict
+        self.producer_cast = None                  # dict
+        self.artist_default_cast = None             # dict
         self.sponsors = list()
         self.performances = dict()
         
@@ -206,7 +206,7 @@ class Play(dict):
             # Since "Theater Bremen" has always the same location for each play we can use the same location for each performance.
             if self.dates:
                 for date in self.dates:
-                    performance = Performance(date, self.location)
+                    performance = Performance(date, self.location, self.artist_default_cast)
                     performances[date] = performance
                     logger.info('%s - added performance: %s', self.title, performance.__dict__)
                     
@@ -348,20 +348,22 @@ class Play(dict):
 
         self.sponsors = sponsors
     
-    def _getRoleFromArtistItem(self, artist_item):
-        role = Lepistant.NOT_AVAILABLE
-        
-        for element in artist_item:
-            if 'class="eventDetailPersonRole"' in str(element):
-                try:
-                    role = element.string.split(':')[0]
-                except:
-                    logger.info('Setting role to "%s" since no role could be find in data_list: %s', role, artist_item)
-        
-        return role
+#    @classmethod
+#    def getRoleFromArtistItem(cls, artist_item):
+#        role = Lepistant.NOT_AVAILABLE
+#        
+#        for element in artist_item:
+#            if 'class="eventDetailPersonRole"' in str(element):
+#                try:
+#                    role = element.string.split(':')[0]
+#                except:
+#                    logger.info('Setting role to "%s" since no role could be find in data_list: %s', role, artist_item)
+#        
+#        return role
     
     def _setCast(self):
-        cast = dict()
+        producer_cast = dict()
+        artist_default_cast = dict()
         
         try:
             artist_item_tags = self.play_detail_soup.findAll('h4', text=re.compile('Besetzung'))[0].parent.findNextSiblings(['span', 'a', 'br'])
@@ -369,16 +371,26 @@ class Play(dict):
                 artist_items = [list(tag[1]) for tag in groupby(artist_item_tags, lambda tag: str(tag) == '<br />') if not tag[0]]
                 for artist_item in artist_items:
                     artist = Artist(artist_item)
-                    role = self._getRoleFromArtistItem(artist_item)             
-                    if role and role in PRODUCERS_CAST:
-                        cast[role] = artist
-                        logger.info('%s - added artist to producer\'s producers_cast: {"%s": "%s"}', self.title, role, artist.full_name)
+                    role = Performance.getRoleFromArtistItem(artist_item)
+                    if role:
+                        if role in PRODUCERS_CAST:
+                            producer_cast[role] = artist
+                            logger.info('%s - added artist to producer_cast: {"%s": "%s"}', self.title, role, artist.full_name)
+                        else:
+                            if role == Lepistant.NOT_AVAILABLE:
+                                role = artist.full_name
+                            artist_default_cast[role] = artist
+                            logger.info('%s - added artist to artist_default_cast: {"%s": "%s"}', self.title, role, artist.full_name)
+                
+                self.producer_cast = producer_cast
+                self.artist_default_cast = artist_default_cast
             else:
-                logger.info('%s - Play does not have a cast. Therefore setting producers_cast and artist_default_cast to an empty dictionary.', self.title)
+                logger.info('%s - Play does not have a producer_cast. Therefore setting producer_cast and artist_default_cast to an empty dictionary.', self.title)
         except IndexError as ierr:
-            logger.warning('Failed to set producers_cast for play "%s" due to: %s.', self.title, str(ierr))
+            logger.warning('Failed to set producer_cast for play "%s" due to: %s.', self.title, str(ierr))
         except AttributeError as attrerr:
-            logger.warning('Failed to set producers_cast for play "%s" due to: %s.', self.title, str(attrerr))
+            logger.warning('Failed to set producer_cast for play "%s" due to: %s.', self.title, str(attrerr))
+            
     
     # 'Public' methods:
     def setPlayDetails(self, soup):

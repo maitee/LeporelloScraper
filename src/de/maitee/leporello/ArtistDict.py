@@ -57,7 +57,7 @@ class Artist(dict):
             else:
                 if role not in self.artist_roles:
                     self.artist_roles.append(role)
-                    logger.info('%s - added new "%s" to artist_roles.', self.full_name, role)
+                    logger.info('%s - added new role "%s" to artist_roles.', self.full_name, role)
     
     def _setData(self, data_list):
         role = None
@@ -77,10 +77,17 @@ class Artist(dict):
                 url = Lepistant.URL_PREFIX + re.search('href=\"(.+?)\"', str(element)).group(1)
         
         # Check if artist already exists.
-        artist = self
-        print Leporello.artists
         if full_name in Leporello.artists:
             artist = Leporello.artists[full_name]
+            self.full_name = artist.full_name
+            self.first_name = artist.first_name
+            self.middle_name = artist.middle_name
+            self.last_name = artist.last_name
+            self.producer_roles = artist.producer_roles
+            self.artist_roles = artist.artist_roles
+            self.photo = artist.photo
+            self.biography = artist.biography
+            self.appearances = artist.appearances
         else:
             self._setName(full_name)
             if url:
@@ -89,7 +96,7 @@ class Artist(dict):
                 self._setDetails(soup)
             
         if role:
-            artist._addRole(role)
+            self._addRole(role)
             
         # Add artist to the leporello artists dictionary so we can check later if the artist already exists.
         # If the artist exists we only update his data.

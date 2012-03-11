@@ -117,7 +117,19 @@ if __name__ == '__main__':
         
         return plays
         
-        
+    
+    def pretty(dictionary, indent=0):
+        pprint(dictionary.__dict__)
+        for key, value in dictionary.iteritems():
+            if key != ('play_detail_soup', 'soup_details', 'data_list', 'soup'):
+                print '\t' * indent + str(key)
+                if isinstance(value, dict):
+                    pretty(value, indent + 1)
+                else:
+                    print '\t' * (indent + 1) + str(value)
+
+    
+    
     def printPlays(plays):
         for play in plays:
             print('')
@@ -148,7 +160,9 @@ if __name__ == '__main__':
     # Starting our leporello_info scraper
     
     # Initializing our leporello (dictionary)
-    Leporello()
-    plays = getPlays(leporello_info)
-    printPlays(plays)
+    leporello = Leporello()
+    leporello.plays = getPlays(leporello_info)
+    
+#    printPlays(plays)
+    pretty(leporello)
     logger.info('Finished parsing leporello.')

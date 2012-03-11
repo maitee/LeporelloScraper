@@ -4,8 +4,15 @@ Created on Feb 27, 2012
 @author: kms
 '''
 
+# Standard libraries
+import re
 import logging
 import datetime
+from itertools import groupby
+# Local libraries
+from LeporelloAssistant import Lepistant
+from ArtistDict import Artist
+import PlayDict
 
 
 logger = logging.getLogger('leporello')
@@ -17,20 +24,33 @@ class Performance(dict):
     '''
 
 
-    def __init__(self, date_time, location):
+    def __init__(self, date_time, location, cast):
         '''
         Constructor
         '''
         dict.__init__({})
         
         self.date = date_time
+        self.cast = cast
         self.location = location
         
         self.type = None
-        self.producers_cast = None
+        self.producer_cast = None
         
         self.soup = None
+   
+    @classmethod
+    def getRoleFromArtistItem(cls, artist_item):
+        role = Lepistant.NOT_AVAILABLE
         
+        for element in artist_item:
+            if 'class="eventDetailPersonRole"' in str(element):
+                try:
+                    role = element.string.split(':')[0]
+                except:
+                    logger.info('Setting role to "%s" since no role could be find in data_list: %s', role, artist_item)
+        
+        return role    
     
     # 'Private' methods:
     def _updateLocation(self, title):
@@ -44,16 +64,40 @@ class Performance(dict):
             
         logger.info('')
         
-    def _setCast(self):
-        pass
+    def _updateCast(self):
+        updated_cast = dict()
         
+        try:
+            artist_item_tags = self.soup.findAll('h4', text=re.compile('Besetzung'))[0].parent.findNextSiblings(['span', 'a', 'br'])
+            if artist_item_tags:
+#                date = str(datetime.datetime(self.date, '%d.%m.%Y'))
+                date = self.date
+                artist_items = [list(tag[1]) for tag in groupby(artist_item_tags, lambda tag: str(tag) == '<br />') if not tag[0]]
+                for artist_item in artist_items:
+                    artist = Artist(artist_item)
+                    role = Performance.getRoleFromArtistItem(artist_item)
+                    if role and role not in PlayDict.PRODUCERS_CAST:
+                        artist_role = role
+                        if role == Lepistant.NOT_AVAILABLE:
+                            artist_role = artist.full_name
+                            print(artist.__dict__)
+                        updated_cast[artist_role] = artist
+                        logger.info('Updated performance from %s - added artist to cast: {"%s": "%s"}', date, artist_role, artist.full_name)
+                
+                self.cast = updated_cast
+            else:
+                logger.info('Performance from %s - performance does not have a cast. Therefore setting cast and to an empty dictionary.', date)
+        except IndexError as ierr:
+            logger.warning('Failed to set cast for performance from "%s" due to: %s.', date, str(ierr))
+        except AttributeError as attrerr:
+            logger.warning('Failed to set cast for performance from "%s" due to: %s.', date, str(attrerr))
         
     # 'Public' methods:
     def setDetails(self, soup, title):
         self.soup = soup
         
         self._updateLocation(title)
-        self._setCast()
+        self._updateCast()
     
     
     
