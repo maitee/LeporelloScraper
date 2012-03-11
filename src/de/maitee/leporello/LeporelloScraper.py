@@ -118,12 +118,37 @@ if __name__ == '__main__':
         return plays
         
         
-        
+    def printPlays(plays):
+        for play in plays:
+            print('')
+            print('=======================================================================================================================================')
+            print('')
+            print('title: ' + play.title)
+            print('subtitle: ' + play.subtitle)
+            print('location: ' + play.location)
+            print('author: ' + play.author)
+            print('photos: ' + repr(play.photos))
+            print('summary: ' + play.summary[:100] + '...')
+            print('further_info: ' + play.further_info[:100] + '...')
+            print('critits: ' + play.critics[:100] + '...')
+            print('dates: ' + repr(play.dates))
+            print('producer_cast: ')
+            pprint(play.producer_cast)
+            print('artist_default_cast: ')
+            pprint(play.artist_default_cast)
+            print('sponsors: ' + repr(play.sponsors))
+            print('performances: ')
+            pprint(play.performances)
+            print('video: ' + play.video)
+            print('file_name_on_disk: ' + play.file_name_on_disk)
         
         
     
     
     # Starting our leporello_info scraper
+    
+    # Initializing our leporello (dictionary)
+    Leporello()
     plays = getPlays(leporello_info)
-    pprint(plays)
+    printPlays(plays)
     logger.info('Finished parsing leporello.')
