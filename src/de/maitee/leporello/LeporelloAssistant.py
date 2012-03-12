@@ -17,9 +17,12 @@ from pickle import PickleError
 # Third party libraries
 from BeautifulSoup import BeautifulSoup
 # Local libraries
+from LeporelloDict import Leporello
 
 
 logger = logging.getLogger('leporello')
+
+leporello = Leporello()
 
 
 class Lepistant(object):

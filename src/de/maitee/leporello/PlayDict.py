@@ -66,7 +66,7 @@ class Play(dict):
         '''
         Constructor
         '''
-        dict.__init__({})
+        dict.__init__(self, {})
         
         self.play_item_soup = play_item_soup
         self.title = self._setTitle()
@@ -197,8 +197,6 @@ class Play(dict):
                     performance = self.performances[date_time]
                     performance.setDetails(soup, self.title)
         
-        print('===========================')
-    
     def _setPerformances(self):
         performances = dict()
         

@@ -12,19 +12,32 @@ import logging
 logger = logging.getLogger('leporello')
 
 
-class Borg(dict):
-    _shared_state = {}
-    def __init__(self):
-        dict.__init__({})
-        self.__dict__ = self._shared_state
+#class Borg(dict):
+#    _shared_state = {}
+#    def __init__(self):
+#        dict.__init__({})
+#        self.__dict__ = self._shared_state
 
 
-class Leporello(Borg):
+class Leporello(dict):
     '''
     classdocs
     '''
-    plays = list()
-    artists = dict()
+
+    def __init__(self):
+        '''
+        Constructor
+        '''
+        dict.__init__(self, {})
+        
+        self.theatre = 'Theater Bremen'
+        self.season = '2011/2012'
+        self.website = 'http://www.theaterbremen.de/de_DE/home'
+        self.box_office = '04213653333'
+        self.email = 'service@theaterbremen.de'
+        self.plays = list()
+        self.artists = dict()
+        self.leporello_info = dict()
     
 #    def __init__(self):
 #        '''

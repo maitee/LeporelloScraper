@@ -7,15 +7,15 @@ Created on Feb 19, 2012
 '''
 
 # Standard libraries
+import json
 import logging.config
 from pprint import pprint
 # Third party libraries
 # Local libraries
 import LoggingConfig
-from PlayDict import Play
-from LeporelloDict import Leporello
 from LeporelloAssistant import Lepistant
-
+from LeporelloAssistant import leporello
+from PlayDict import Play
 
 # Set logger from dictionary
 logging.config.dictConfig(LoggingConfig.LOGGING_CONFIG)
@@ -38,14 +38,16 @@ if __name__ == '__main__':
     NOT_AVAILABLE = 'n/a'
     
     # Creating the 'leporello' dictionary that servers as our root container.
-    leporello = {
-                 'theatre': "Theater Bremen", 
-                 'season': "2011/2012", 
-                 'website': "http://www.theaterbremen.de/de_DE/home", 
-                 'boxOffice': "04213653333", 
-                 'email': "service@theaterbremen.de", 
-                 'plays': "LIST of all plays", 
-                 }
+#    leporello = {
+#                 'theatre': "Theater Bremen", 
+#                 'season': "2011/2012", 
+#                 'website': "http://www.theaterbremen.de/de_DE/home", 
+#                 'boxOffice': "04213653333", 
+#                 'email': "service@theaterbremen.de", 
+#                 'plays': "LIST of all plays", 
+#                 }
+    
+    
     
     leporello_info = {
                      'theatre': "Theater Bremen",
@@ -160,9 +162,10 @@ if __name__ == '__main__':
     # Starting our leporello_info scraper
     
     # Initializing our leporello (dictionary)
-    leporello = Leporello()
     leporello.plays = getPlays(leporello_info)
-    
+#    pprint(leporello.__dict__)
+    print json.dumps(leporello.__dict__)
 #    printPlays(plays)
-    pretty(leporello)
+
+    
     logger.info('Finished parsing leporello.')

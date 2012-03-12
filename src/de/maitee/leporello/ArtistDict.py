@@ -9,11 +9,11 @@ Created on Mar 5, 2012
 # Standard libraries
 import re
 import logging
-from itertools import groupby
 # Local libraries
-import PlayDict
-from LeporelloDict import Leporello
+#from LeporelloScraper import leporello
 from LeporelloAssistant import Lepistant
+from LeporelloAssistant import leporello
+import PlayDict
 
 
 logger = logging.getLogger('leporello')
@@ -77,8 +77,8 @@ class Artist(dict):
                 url = Lepistant.URL_PREFIX + re.search('href=\"(.+?)\"', str(element)).group(1)
         
         # Check if artist already exists.
-        if full_name in Leporello.artists:
-            artist = Leporello.artists[full_name]
+        if full_name in leporello.artists:
+            artist = leporello.artists[full_name]
             self.full_name = artist.full_name
             self.first_name = artist.first_name
             self.middle_name = artist.middle_name
@@ -100,7 +100,7 @@ class Artist(dict):
             
         # Add artist to the leporello artists dictionary so we can check later if the artist already exists.
         # If the artist exists we only update his data.
-        Leporello.artists[self.full_name] = self
+        leporello.artists[self.full_name] = self
         
         return data_list
     

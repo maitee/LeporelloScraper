@@ -7,7 +7,6 @@ Created on Feb 27, 2012
 # Standard libraries
 import re
 import logging
-import datetime
 from itertools import groupby
 # Local libraries
 from LeporelloAssistant import Lepistant
@@ -70,7 +69,6 @@ class Performance(dict):
         try:
             artist_item_tags = self.soup.findAll('h4', text=re.compile('Besetzung'))[0].parent.findNextSiblings(['span', 'a', 'br'])
             if artist_item_tags:
-#                date = str(datetime.datetime(self.date, '%d.%m.%Y'))
                 date = self.date
                 artist_items = [list(tag[1]) for tag in groupby(artist_item_tags, lambda tag: str(tag) == '<br />') if not tag[0]]
                 for artist_item in artist_items:
@@ -80,7 +78,6 @@ class Performance(dict):
                         artist_role = role
                         if role == Lepistant.NOT_AVAILABLE:
                             artist_role = artist.full_name
-                            print(artist.__dict__)
                         updated_cast[artist_role] = artist
                         logger.info('Updated performance from %s - added artist to cast: {"%s": "%s"}', date, artist_role, artist.full_name)
                 
