@@ -7,12 +7,13 @@ Created on Feb 28, 2012
 '''
 
 # Standard libraries
-import re
-import os
-import pickle
-import urllib2
+import datetime
 import HTMLParser
 import logging
+import os
+import pickle
+import re
+import urllib2
 from pickle import PickleError
 # Third party libraries
 from BeautifulSoup import BeautifulSoup
@@ -318,7 +319,11 @@ class Lepistant(object):
         cls.FILE_NAME_LEPORELLO = info[cls.KEY_THEATRE]
         cls.URL_PREFIX = info[cls.KEY_URL_PREFIX]
         
-    
+    @classmethod
+    def formatDatetimeToString(cls, date_time):
+        date_string = date_time.strftime('%Y.%m.%d-%H.%M')
+        
+        return date_string
         
     
         

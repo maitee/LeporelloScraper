@@ -162,10 +162,13 @@ if __name__ == '__main__':
     # Starting our leporello_info scraper
     
     # Initializing our leporello (dictionary)
-    leporello.plays = getPlays(leporello_info)
+    leporello['plays'] = getPlays(leporello_info)
+#    print leporello['plays']
 #    pprint(leporello.__dict__)
-    print json.dumps(leporello.__dict__)
+    print json.dumps(leporello, ensure_ascii=False, indent=4)
 #    printPlays(plays)
 
     
     logger.info('Finished parsing leporello.')
+    
+    

@@ -31,7 +31,7 @@ class Artist(dict):
         @param data_list: A list in a form of "[<span class="eventDetailPersonRole">Regie:&nbsp;</span>, 
                                                 <a href="/de_DE/person/59253" class="eventDetailPersonLink" title="Volker L�sch">Volker L�sch</a>]".
         '''
-        dict.__init__({})
+        dict.__init__(self, {})
         
         self.full_name = str()
         self.first_name = str()
@@ -49,15 +49,23 @@ class Artist(dict):
         self.data_list = self._setData(data_list)
         
     # 'Private' methods:
+    def _setKey(self, key, value):
+        self[key] = value
+        
+        return value
+    
     def _addRole(self, role):
         if role:
             if role in PlayDict.PRODUCERS_CAST and not role in self.producer_roles:
                 self.producer_roles.append(role)
+                self._setKey('producer_roles', self.producer_roles)
                 logger.info('%s - added new role "%s" to producer_roles.', self.full_name, role)
             else:
                 if role not in self.artist_roles:
                     self.artist_roles.append(role)
+                    self._setKey('artist_roles', self.artist_roles)
                     logger.info('%s - added new role "%s" to artist_roles.', self.full_name, role)
+        
     
     def _setData(self, data_list):
         role = None
@@ -79,15 +87,15 @@ class Artist(dict):
         # Check if artist already exists.
         if full_name in leporello.artists:
             artist = leporello.artists[full_name]
-            self.full_name = artist.full_name
-            self.first_name = artist.first_name
-            self.middle_name = artist.middle_name
-            self.last_name = artist.last_name
-            self.producer_roles = artist.producer_roles
-            self.artist_roles = artist.artist_roles
-            self.photo = artist.photo
-            self.biography = artist.biography
-            self.appearances = artist.appearances
+            self.full_name = self._setKey('full_name', artist.full_name)
+            self.first_name = self._setKey('first_name', artist.first_name)
+            self.middle_name = self._setKey('middle_name', artist.middle_name)
+            self.last_name = self._setKey('last_name', artist.last_name)
+            self.producer_roles = self._setKey('producer_roles', artist.producer_roles)
+            self.artist_roles = self._setKey('artist_roles', artist.artist_roles)
+            self.photo = self._setKey('photo', artist.photo)
+            self.biography = self._setKey('biography', artist.biography)
+            self.appearances = self._setKey('appearances', artist.appearances)
         else:
             self._setName(full_name)
             if url:
@@ -105,19 +113,24 @@ class Artist(dict):
         return data_list
     
     def _setName(self, name):
-        self.full_name = name
+        self.full_name = self._setKey('full_name', name)
         
         splitted_name = name.split(' ')
         self.first_name = splitted_name[0]
+        
         if len(splitted_name) > 1:
-            self.last_name = splitted_name[-1]
+            self.last_name = self._setKey('last_name', splitted_name[-1])
+            
             if len(splitted_name) > 2:
-                self.middle_name = ''
+                middle_name = ''
                 seq = splitted_name[1:-1]
+                
                 for element in enumerate(seq):
-                    self.middle_name += element[1]
+                    middle_name += element[1]
                     if element[1] != seq[-1]:
-                        self.middle_name += ' '
+                        middle_name += ' '
+                
+                self.middle_name = self._setKey('middle_name', middle_name)
                 logger.info('%s - set full_name, middle_name and last_name to "%s", "%s" and "%s".', 
                             self.full_name, self.first_name, self.middle_name, self.last_name)
             else:
@@ -126,32 +139,38 @@ class Artist(dict):
     def _setPhoto(self, soup):
         img_tag = soup.find('img', {"class": "person-picture"})
         url = Lepistant.getURLFromImageTag(img_tag)
+        
         if url:
-            self.photo = url
+            photo = url
         else:
-            self.photo = Lepistant.NOT_AVAILABLE
-            
+            photo = Lepistant.NOT_AVAILABLE
+        
+        self.photo = self._setKey('photo', photo)
         logger.info('%s - set photo: "%s".', self.full_name, self.photo)
     
     def _setBiography(self, soup):
         biography_p_tag = soup.findAll('p', {"class": "person-description"})
         biography = Lepistant.formatParagraphsToString(biography_p_tag)
-#        print repr(biography)
+        
         if biography:
-            self.biography = biography
+            biography = biography
         else:
-            self.biography = Lepistant.NOT_AVAILABLE
-            
+            biography = Lepistant.NOT_AVAILABLE
+        
+        self.biography = self._setKey('biography', biography)
         logger.info('%s - set biography: "%s...".', self.full_name, repr(self.biography[:Lepistant.LOG_MESSAGE_LENGTH]))
         
     def _setAppearances(self, soup):
         appearances = []
+        
         try:
             appearance_ul_tag = soup.findAll('ul', {"class": "events"})[0]
             appearance_link_tags = appearance_ul_tag.findAll('a')
+            
             for link in appearance_link_tags:
                 appearances.append(link.string)
-            self.appearances = appearances
+
+            self.appearances = self._setKey('appearances', appearances)
             logger.info('%s - set appearances: "%s".', self.full_name, self.appearances)
         except:
             logger.warning('Failed to set appearances for artist "%s". Therefore setting appearances to an empty list',self.full_name)

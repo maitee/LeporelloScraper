@@ -93,8 +93,15 @@ class Play(dict):
         self.play_detail_soup = None
         
     # 'Private' methods:
+    def _setKey(self, key, value):
+        self[key] = value
+        
+        return value
+        
+    
     def _setDates(self):
         dates = list()
+        
         try:
             # Set locale time from en_US to de_DE for formatting calendar dates.
             locale.setlocale(locale.LC_TIME, 'de_DE.utf-8')
@@ -104,6 +111,7 @@ class Play(dict):
             (location_part, seperator, dates_part) = dates_string.partition(':') 
             dates_per_month = dates_part.split(',')
             # dates_per_month = "[' 10. | 14. | 18. September 2011', ' 01. | 16. | 22. Oktober 2011', ' 18. | 29. November 2011', ' 08. | 11. | 16. | 29. Dezember 2011', ' 27. Januar 2012', ' 03. | 10. | 15. | 26. Februar 2012', ' 27. M\xc3\xa4rz 2012']"
+           
             for dates_of_one_month in dates_per_month:
             # dates_of_one_month = " 10. | 14. | 18. September 2011"
                 raw_dates = dates_of_one_month.split('|')
@@ -114,21 +122,27 @@ class Play(dict):
                 # month = "September"
                 year = raw_date_with_month_name.split()[2]
                 # year = "2011"
+                
                 for i in range(len(raw_dates) - 1):
                 # i = "0"
                     # date = "10. September 2011"
-                    date_string = raw_dates[i].lstrip() + month + ' ' + year
-                    date = datetime.datetime.strptime(date_string, '%d. %B %Y')
+                    date_string_raw = raw_dates[i].lstrip() + month + ' ' + year
+                    date_time = datetime.datetime.strptime(date_string_raw, '%d. %B %Y')
                     
-                    dates.append(date)
+                    # For json serialization we have to save the date as a string.
+                    date_string = Lepistant.formatDatetimeToString(date_time)
+                    dates.append(date_string)
                 
                 # Formatting the last date in the list: "18. September 2011"
                 last_date_unformatted = raw_dates[-1].lstrip().rstrip()
-                last_date = datetime.datetime.strptime(last_date_unformatted, '%d. %B %Y')
-                dates.append(last_date)
+                last_date_time = datetime.datetime.strptime(last_date_unformatted, '%d. %B %Y')
+                last_date_string = Lepistant.formatDatetimeToString(last_date_time)
+                
+                dates.append(last_date_string)
+                
             logger.info('%s - set dates: %s', self.title, dates)
         except ValueError as verr:
-            logger.error('Failed to format date "%s" for play "%s" due to: %s', date_string, self.title, str(verr))
+            logger.error('Failed to format date "%s" for play "%s" due to: %s', date_string_raw, self.title, str(verr))
         except:
             logger.error('')
             logger.error('Failed to set dates for play "%s". Therefore setting dates to an empty list.', self.title)
@@ -138,8 +152,7 @@ class Play(dict):
         locale.setlocale(locale.LC_TIME, 'en_US.utf-8')
         
         logger.info('')
-         
-        return dates 
+        return self._setKey('dates', dates)
     
     def _updateLocation(self):
         location = Lepistant.NOT_AVAILABLE
@@ -156,7 +169,7 @@ class Play(dict):
         
         logger.info('')
         
-        return location
+        return self._setKey('location', location)
     
     def _getFurtherPerformances(self):
         # Set locale time from en_US to de_DE for formatting calendar dates.
@@ -170,7 +183,8 @@ class Play(dict):
             for perfomance_tag in performance_tags:
                 date_link_tag = perfomance_tag.findAll('a', text=True)[0].parent
                 date_string = date_link_tag.string
-                date = datetime.datetime.strptime(date_string, '%a, %d.%m.%Y / %H.%M Uhr')
+                date_time = datetime.datetime.strptime(date_string, '%a, %d.%m.%Y / %H.%M Uhr')
+                date = Lepistant.formatDatetimeToString(date_time)
                 url = Lepistant.getURLFromLinkTag(date_link_tag)
                 performance_tuple = (date, url)
                 perfomance_tuples.append(performance_tuple)
@@ -186,15 +200,23 @@ class Play(dict):
         performance_tuples = self._getFurtherPerformances()
         
         if performance_tuples:
-            for tuple in performance_tuples:
-                date = tuple[0]
-                date_time = datetime.datetime(date.year, date.month, date.day)
-                url = tuple[1]
-                file_path = Lepistant.createFilePath(self.file_path_on_disk, str(date_time), 'performance')
+            for a_tuple in performance_tuples:
+                date = a_tuple[0]
+                
+                # Only use year, month and day to look up dates for performances.
+                date_lookup = date.split('-')[0] + '-00.00'
+                
+                url = a_tuple[1]
+                file_path = Lepistant.createFilePath(self.file_path_on_disk, date, 'performance')
                 soup = Lepistant.getSoup(url, file_path)
-                if date_time in self.performances:
+                
+                if date_lookup in self.performances:
                     # Updating the date with a more precise date including Weekday and Time.
-                    performance = self.performances[date_time]
+                    performance = self.performances[date_lookup]
+                    # TODO: Updating of the date should be done in single function.
+                    performance.date = date
+                    performance['date'] = date
+                    
                     performance.setDetails(soup, self.title)
         
     def _setPerformances(self):
@@ -210,6 +232,7 @@ class Play(dict):
                     
                 # Set performance type only for the first date
                 first_performance = performances[self.dates[0]]
+                # TODO: Check if dot setting also changes key/value.
                 first_performance.type = self._getPerformanceTypeOfFirstPerformance()
                 logger.info('%s - set type to "%s" of performance: %s', self.title, first_performance.type, first_performance.__dict__)
             else:
@@ -217,7 +240,7 @@ class Play(dict):
         except TypeError as terr:
             logger.warning('Failed to set performances for play "%s" due to: %s. Therefore setting performances to an empty list', self.title, str(terr))
             
-        self.performances = performances
+        self.performances = self._setKey('performances', performances)
         
         self._setDetailsForPerformances()
     
@@ -233,7 +256,7 @@ class Play(dict):
         
         logger.info('')
             
-        return subtitle
+        return self._setKey('subtitle', subtitle)
     
     def _setTitle(self):
         title = Lepistant.NOT_AVAILABLE
@@ -247,7 +270,7 @@ class Play(dict):
         
         logger.info('')
         
-        return title
+        return self._setKey('title', title)
     
     def _getPerformanceTypeOfFirstPerformance(self):
         performance_type = Lepistant.NOT_AVAILABLE
@@ -286,34 +309,40 @@ class Play(dict):
         return soup
     
     def _setSummary(self):
-        self.summary = Lepistant.NOT_AVAILABLE
+        summary = Lepistant.NOT_AVAILABLE
         
         try:
             summary_paragraphs = self._getParagraphsForContent('Inhalt')
-            self.summary = Lepistant.formatParagraphsToString(summary_paragraphs)
-            logger.info('%s - set summary: "%s..."', self.title, repr(self.summary[:Lepistant.LOG_MESSAGE_LENGTH]))
+            summary = Lepistant.formatParagraphsToString(summary_paragraphs)
+            logger.info('%s - set summary: "%s..."', self.title, repr(summary[:Lepistant.LOG_MESSAGE_LENGTH]))
         except:
             logger.warning('Failed to set summary for play "%s". Therefore setting summary to %s.', self.title, Lepistant.NOT_AVAILABLE)
+            
+        self.summary = self._setKey('summary', summary)
                 
     def _setCritics(self):
-        self.critics = Lepistant.NOT_AVAILABLE
+        critics = Lepistant.NOT_AVAILABLE
         
         try:
             critics_paragraphs = self._getParagraphsForContent('Pressestimmen')
-            self.critics = Lepistant.formatParagraphsToString(critics_paragraphs)
-            logger.info('%s - set critics: "%s..."', self.title, repr(self.critics[:Lepistant.LOG_MESSAGE_LENGTH]))
+            critics = Lepistant.formatParagraphsToString(critics_paragraphs)
+            logger.info('%s - set critics: "%s..."', self.title, repr(critics[:Lepistant.LOG_MESSAGE_LENGTH]))
         except:
             logger.warning('Failed to set critics for play "%s". Therefore setting critics to %s.', self.title, Lepistant.NOT_AVAILABLE)
+            
+        self.critics = self._setKey('critics', critics)
     
     def _setFurtherInfo(self):
-        self.further_info = Lepistant.NOT_AVAILABLE
+        further_info = Lepistant.NOT_AVAILABLE
         
         try:
             further_info_paragraphs = self._getParagraphsForContent('Weitere Texte')
-            self.further_info = Lepistant.formatParagraphsToString(further_info_paragraphs)
-            logger.info('%s - set further_info: "%s..."', self.title, repr(self.further_info[:Lepistant.LOG_MESSAGE_LENGTH]))
+            further_info = Lepistant.formatParagraphsToString(further_info_paragraphs)
+            logger.info('%s - set further_info: "%s..."', self.title, repr(further_info[:Lepistant.LOG_MESSAGE_LENGTH]))
         except:
             logger.warning('Failed to set further_info for play "%s". Therefore setting further_info to %s.', self.title, Lepistant.NOT_AVAILABLE)
+    
+        self.further_info = self._setKey('further_info', further_info)
     
     def _setPhotos(self):
         photos = list()
@@ -327,7 +356,7 @@ class Play(dict):
         except AttributeError as attrerr:
             logger.warning('Failed to set photos for play "%s" due to: %s. Therefore setting photos to an empty list.', self.title, str(attrerr))
         
-        self.photos = photos
+        self.photos = self._setKey('photos', photos)
     
     def _setSponsors(self):
         sponsors = list()
@@ -344,7 +373,7 @@ class Play(dict):
         except AttributeError as attrerr:
             logger.warning('Failed to set sponsor logos for play "%s" due to: %s. Therefore setting sponsors to an empty list.', self.title, str(attrerr))
 
-        self.sponsors = sponsors
+        self.sponsors = self._setKey('sponsors', sponsors)
     
 #    @classmethod
 #    def getRoleFromArtistItem(cls, artist_item):
@@ -380,8 +409,8 @@ class Play(dict):
                             artist_default_cast[role] = artist
                             logger.info('%s - added artist to artist_default_cast: {"%s": "%s"}', self.title, role, artist.full_name)
                 
-                self.producer_cast = producer_cast
-                self.artist_default_cast = artist_default_cast
+                self.producer_cast = self._setKey('producer_cast', producer_cast)
+                self.artist_default_cast = self._setKey('artist_default_cast', artist_default_cast)
             else:
                 logger.info('%s - Play does not have a producer_cast. Therefore setting producer_cast and artist_default_cast to an empty dictionary.', self.title)
         except IndexError as ierr:

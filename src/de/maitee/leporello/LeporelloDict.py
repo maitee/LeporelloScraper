@@ -28,16 +28,24 @@ class Leporello(dict):
         '''
         Constructor
         '''
-        dict.__init__(self, {})
+        dict.__init__({})
         
-        self.theatre = 'Theater Bremen'
-        self.season = '2011/2012'
-        self.website = 'http://www.theaterbremen.de/de_DE/home'
-        self.box_office = '04213653333'
-        self.email = 'service@theaterbremen.de'
-        self.plays = list()
-        self.artists = dict()
+        self.theatre = self._setKey('theatre', 'Theater Bremen')
+        self.season = self._setKey('season', '2011/2012')
+        self.website = self._setKey('website', 'http://www.theaterbremen.de/de_DE/home')
+        self.box_office = self._setKey('box_office', '04213653333')
+        self.email = self._setKey('email', 'service@theaterbremen.de')
+        self.plays = self._setKey('plays', list())
+        self.artists = self._setKey('artists', dict())
         self.leporello_info = dict()
+    
+    
+    def _setKey(self, key, value):
+        self[key] = value
+        
+        return value
+    
+    
     
 #    def __init__(self):
 #        '''
