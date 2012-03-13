@@ -61,7 +61,7 @@ class Performance(dict):
     def _updateLocation(self, title):
         try:
             location_p_tag = self.soup.find('h3', text=title).parent.findNextSiblings('p')[1]
-            location = location_p_tag.text
+            location = location_p_tag.text.lstrip().rstrip().replace_all('&nbsp;', '')
             self.location = self._setKey('location', location)
             logger.info('Updated location to "%s" of performance.', self.location)
         except:
