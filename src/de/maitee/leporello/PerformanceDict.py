@@ -89,7 +89,7 @@ class Performance(dict):
                         if role == Lepistant.NOT_AVAILABLE:
                             artist_role = artist.full_name
                         
-                        updated_cast[artist_role] = artist
+                        updated_cast[artist_role] = artist.full_name
                         logger.info('Updated performance from %s - added artist to cast: {"%s": "%s"}', date, artist_role, artist.full_name)
                 
                 self.cast = self._setKey('cast', updated_cast)

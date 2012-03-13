@@ -56,7 +56,7 @@ class Artist(dict):
     
     def _addRole(self, role):
         if role:
-            if role in PlayDict.PRODUCERS_CAST and not role in self.producer_roles:
+            if (role in PlayDict.PRODUCERS_CAST) and (role not in self.producer_roles):
                 self.producer_roles.append(role)
                 self._setKey('producer_roles', self.producer_roles)
                 logger.info('%s - added new role "%s" to producer_roles.', self.full_name, role)

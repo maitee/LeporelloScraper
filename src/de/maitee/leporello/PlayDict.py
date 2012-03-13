@@ -71,7 +71,7 @@ class Play(dict):
         self.play_item_soup = play_item_soup
         self.title = self._setTitle()
         self.subtitle = self._setSubtitle()
-        self.location = self._updateLocation()
+        self.default_location = self._setLocation()
         self.dates = self._setDates()
 
         self.link = str()
@@ -154,7 +154,7 @@ class Play(dict):
         logger.info('')
         return self._setKey('dates', dates)
     
-    def _updateLocation(self):
+    def _setLocation(self):
         location = Lepistant.NOT_AVAILABLE
         
         try:
@@ -169,7 +169,7 @@ class Play(dict):
         
         logger.info('')
         
-        return self._setKey('location', location)
+        return self._setKey('default_location', location)
     
     def _getFurtherPerformances(self):
         # Set locale time from en_US to de_DE for formatting calendar dates.
@@ -226,7 +226,7 @@ class Play(dict):
             # Since "Theater Bremen" has always the same location for each play we can use the same location for each performance.
             if self.dates:
                 for date in self.dates:
-                    performance = Performance(date, self.location, self.artist_default_cast)
+                    performance = Performance(date, self.default_location, self.artist_default_cast)
                     performances[date] = performance
                     logger.info('%s - added performance: %s', self.title, performance.__dict__)
                     
@@ -394,19 +394,23 @@ class Play(dict):
         
         try:
             artist_item_tags = self.play_detail_soup.findAll('h4', text=re.compile('Besetzung'))[0].parent.findNextSiblings(['span', 'a', 'br'])
+            
             if artist_item_tags:
                 artist_items = [list(tag[1]) for tag in groupby(artist_item_tags, lambda tag: str(tag) == '<br />') if not tag[0]]
+                
                 for artist_item in artist_items:
                     artist = Artist(artist_item)
                     role = Performance.getRoleFromArtistItem(artist_item)
+                    
                     if role:
                         if role in PRODUCERS_CAST:
-                            producer_cast[role] = artist
+                            producer_cast[role] = artist.full_name
                             logger.info('%s - added artist to producer_cast: {"%s": "%s"}', self.title, role, artist.full_name)
                         else:
                             if role == Lepistant.NOT_AVAILABLE:
                                 role = artist.full_name
-                            artist_default_cast[role] = artist
+                            
+                            artist_default_cast[role] = artist.full_name
                             logger.info('%s - added artist to artist_default_cast: {"%s": "%s"}', self.title, role, artist.full_name)
                 
                 self.producer_cast = self._setKey('producer_cast', producer_cast)
