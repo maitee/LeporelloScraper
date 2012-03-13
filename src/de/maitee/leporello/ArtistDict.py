@@ -74,14 +74,14 @@ class Artist(dict):
         
         for element in data_list:
             if 'class="eventDetailPerson"' in str(element):
-                full_name = element.string
+                full_name = element.string.lstrip().rstrip()
             elif 'class="eventDetailPersonRole"' in str(element):
                 try:
-                    role = element.string.split(':')[0]
+                    role = element.string.split(':')[0].lstrip().rstrip()
                 except:
                     logger.info('Setting role to "%s" since no role could be find in data_list: %s', role, data_list)
             elif 'class="eventDetailPersonLink"' in str(element):
-                full_name = element.string
+                full_name = element.string.lstrip().rstrip()
                 url = Lepistant.URL_PREFIX + re.search('href=\"(.+?)\"', str(element)).group(1)
         
         # Check if artist already exists.
