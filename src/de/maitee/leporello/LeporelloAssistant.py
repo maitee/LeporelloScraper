@@ -263,7 +263,7 @@ class Lepistant(object):
         return url
     
     @classmethod
-    def pickleSoup(cls, soup, file_path):
+    def pickleSoup(cls, soup, file_path, overwrite=False):
         '''
         Pickles a soup in form of string for later usage.
         @param cls: This class to reference class properties.
@@ -281,9 +281,10 @@ class Lepistant(object):
             except OSError as oserr:
                 logger.warning('Failed to create folder "%s" due to: %s', folder_path, str(oserr))
         
-        # Only pickle file if the file does not exist.
         file_exists = os.path.isfile(file_path)
-        if not file_exists:
+
+        # Only pickle file if the file does not exist or overwrite was set.
+        if overwrite or (not file_exists):
             try:
                 with open(file_path, 'wb') as to_file_path:
                     pickle.dump(str(soup), to_file_path)
