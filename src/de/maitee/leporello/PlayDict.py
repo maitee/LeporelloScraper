@@ -427,6 +427,8 @@ class Play(dict):
     def setPlayDetails(self, soup):
         self.play_detail_soup = soup
         logger.info('')
+        self._setPhotos()
+        logger.info('')
         self._setSummary()
         logger.info('')
         self._setCritics()
