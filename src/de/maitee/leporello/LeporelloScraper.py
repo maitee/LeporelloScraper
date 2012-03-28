@@ -78,36 +78,36 @@ if __name__ == '__main__':
         
         # Get only one play item for testing purposes
 #        playItem = playItems[20]    # WirAlleAnders
-#        playItem = playItems[12]    # AltArmArbeitslos
-#        play = Play(playItem)
-#        play.link = Lepistant.getURLFromTagContent(playItem)
-#        formatted_title = Lepistant.removeNonAlphanumericCharacters(play.title)
-#        play.file_path_on_disk = Lepistant.REL_PATH_PLAYS_FOLDER + formatted_title + '/'
-#        play.file_name_on_disk = Lepistant.createFilePath(
-#                                                play.file_path_on_disk, 
-#                                                play.title, 
-#                                                'html')
-#        soup = Lepistant.getSoup(play.link, play.file_name_on_disk)
-#        play.setPlayDetails(soup)
-#        plays.append(play)
-        
-        
-        for playItem in playItems:
-            logger.info('>>>>>>>>>>>>>>>>>>>>>>>> Fetching new play <<<<<<<<<<<<<<<<<<<<<<<<<')
-            play = Play(playItem)
-            play.link = Lepistant.getURLFromTagContent(playItem)
-            formatted_title = Lepistant.removeNonAlphanumericCharacters(play.title)
-            play.file_path_on_disk = Lepistant.REL_PATH_PLAYS_FOLDER + formatted_title + '/'
-            play.file_name_on_disk = Lepistant.createFilePath(
+        playItem = playItems[12]    # AltArmArbeitslos
+        play = Play(playItem)
+        play.link = Lepistant.getURLFromTagContent(playItem)
+        formatted_title = Lepistant.removeNonAlphanumericCharacters(play.title)
+        play.file_path_on_disk = Lepistant.REL_PATH_PLAYS_FOLDER + formatted_title + '/'
+        play.file_name_on_disk = Lepistant.createFilePath(
                                                 play.file_path_on_disk, 
                                                 play.title, 
                                                 'html')
-            soup = Lepistant.getSoup(play.link, play.file_name_on_disk)
-            play.setPlayDetails(soup)
-            
-            logger.info('')
-            
-            plays.append(play)
+        soup = Lepistant.getSoup(play.link, play.file_name_on_disk)
+        play.setPlayDetails(soup)
+        plays.append(play)
+        
+        
+#        for playItem in playItems:
+#            logger.info('>>>>>>>>>>>>>>>>>>>>>>>> Fetching new play <<<<<<<<<<<<<<<<<<<<<<<<<')
+#            play = Play(playItem)
+#            play.link = Lepistant.getURLFromTagContent(playItem)
+#            formatted_title = Lepistant.removeNonAlphanumericCharacters(play.title)
+#            play.file_path_on_disk = Lepistant.REL_PATH_PLAYS_FOLDER + formatted_title + '/'
+#            play.file_name_on_disk = Lepistant.createFilePath(
+#                                                play.file_path_on_disk, 
+#                                                play.title, 
+#                                                'html')
+#            soup = Lepistant.getSoup(play.link, play.file_name_on_disk)
+#            play.setPlayDetails(soup)
+#            
+#            logger.info('')
+#            
+#            plays.append(play)
         
         return plays
         
@@ -155,11 +155,13 @@ if __name__ == '__main__':
     
     leporello['plays'] = getPlays(leporello_info)
     
-    file_path = Lepistant.createFilePath(Lepistant.REL_PATH_DOWNLOADS_FOLDER, 'leporello', 'json')
+    file_name = 'leporello_test'
+    
+    file_path = Lepistant.createFilePath(Lepistant.REL_PATH_DOWNLOADS_FOLDER, file_name, 'json')
     json_file = open(file_path, 'w+')
     json.dump(leporello, json_file, sort_keys=True, ensure_ascii=False)
     
-    file_path_formatted = Lepistant.createFilePath(Lepistant.REL_PATH_DOWNLOADS_FOLDER, 'leporello_formatted', 'json')
+    file_path_formatted = Lepistant.createFilePath(Lepistant.REL_PATH_DOWNLOADS_FOLDER, file_name + '_formatted', 'json')
     json_file_formatted = open(file_path_formatted, 'w+')
     json.dump(leporello, json_file_formatted, sort_keys=True, ensure_ascii=False, indent=4)
     
