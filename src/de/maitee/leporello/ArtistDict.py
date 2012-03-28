@@ -41,9 +41,9 @@ class Artist(dict):
         self.artist_roles = list()
         self.producer_roles = list()
         
-        self.photo = None
-        self.biography = None
-        self.appearances = None
+        self.photo = str()
+        self.biography = str()
+        self.appearances = list()
         
         self.soup_details = None
         self.data_list = self._setData(data_list)
