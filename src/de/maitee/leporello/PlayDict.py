@@ -15,6 +15,7 @@ from itertools import groupby
 from LeporelloAssistant import Lepistant
 from ArtistDict import Artist
 from PerformanceDict import Performance
+from string import replace
 
 
 logger = logging.getLogger('leporello')
@@ -138,6 +139,9 @@ class Play(dict):
                 last_date_time = datetime.datetime.strptime(last_date_unformatted, '%d. %B %Y')
                 last_date_string = Lepistant.formatDatetimeToString(last_date_time)
                 
+#                 Converting the date_string to ISO 8601 format: YYYY-MM-DDThh:mm+01
+#                iso_8601_date = Lepistant.formatDateToISO8601(last_date_string)
+                
                 dates.append(last_date_string)
                 
             logger.info('%s - set dates: %s', self.title, dates)
@@ -203,8 +207,10 @@ class Play(dict):
             for a_tuple in performance_tuples:
                 date = a_tuple[0]
                 
+#                iso_8601_date = Lepistant.formatDateToISO8601(date)
+                
                 # Only use year, month and day to look up dates for performances.
-                date_lookup = date.split('-')[0] + '-00.00'
+                date_lookup = date.split('T')[0] + 'T00:00+01'
                 
                 url = a_tuple[1]
                 file_path = Lepistant.createFilePath(self.file_path_on_disk, date, 'performance')
@@ -213,7 +219,7 @@ class Play(dict):
                 if date_lookup in self.performances:
                     # Updating the date with a more precise date including Weekday and Time.
                     performance = self.performances[date_lookup]
-                    # TODO: Updating of the date should be done in single function.
+                    # TODO: Updating of the date should be done in a single function.
                     performance.date = date
                     performance['date'] = date
                     

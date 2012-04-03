@@ -7,7 +7,6 @@ Created on Feb 27, 2012
 # Standard libraries
 import re
 import logging
-import datetime
 from itertools import groupby
 # Local libraries
 from LeporelloAssistant import Lepistant
@@ -31,7 +30,7 @@ class Performance(dict):
         dict.__init__(self, {})
         
         self.date = self._setKey('date', date)
-        self.cast = self._setKey('cast', cast)
+        self.artist_cast = self._setKey('artist_cast', cast)
         self.location = self._setKey('location', location)
         
         self.type = None
@@ -90,15 +89,15 @@ class Performance(dict):
                             artist_role = artist.full_name
                         
                         updated_cast[artist_role] = artist.full_name
-                        logger.info('Updated performance from %s - added artist to cast: {"%s": "%s"}', date, artist_role, artist.full_name)
+                        logger.info('Updated performance from %s - added artist to artist_cast: {"%s": "%s"}', date, artist_role, artist.full_name)
                 
-                self.cast = self._setKey('cast', updated_cast)
+                self.artist_cast = self._setKey('artist_cast', updated_cast)
             else:
-                logger.info('Performance from %s - performance does not have a cast. Therefore setting cast and to an empty dictionary.', date)
+                logger.info('Performance from %s - performance does not have a artist_cast. Therefore setting artist_cast and to an empty dictionary.', date)
         except IndexError as ierr:
-            logger.warning('Failed to set cast for performance from "%s" due to: %s.', date, str(ierr))
+            logger.warning('Failed to set artist_cast for performance from "%s" due to: %s.', date, str(ierr))
         except AttributeError as attrerr:
-            logger.warning('Failed to set cast for performance from "%s" due to: %s.', date, str(attrerr))
+            logger.warning('Failed to set artist_cast for performance from "%s" due to: %s.', date, str(attrerr))
         
     # 'Public' methods:
     

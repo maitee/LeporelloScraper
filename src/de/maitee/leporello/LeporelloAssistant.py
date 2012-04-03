@@ -7,7 +7,6 @@ Created on Feb 28, 2012
 '''
 
 # Standard libraries
-import datetime
 import HTMLParser
 import logging
 import os
@@ -19,6 +18,7 @@ from pickle import PickleError
 from BeautifulSoup import BeautifulSoup
 # Local libraries
 from LeporelloDict import Leporello
+from string import replace
 
 
 logger = logging.getLogger('leporello')
@@ -118,6 +118,35 @@ class Lepistant(object):
         logger.info('Created file path: %s', file_path)
         
         return file_path
+    
+    @classmethod
+    def formatDatetimeToString(cls, date_time):
+        '''
+        Formats a date string to a string complying with the ISO 8601 standard.
+        @param cls: This class to reference class properties.
+        @param date_string: The date string that will be formatted (YYYY.MM.DD-hh.mm).
+        @return: (string) the formatted date string complying with the ISO 8601 standard (YYYY-MM-DDThh:mm+01.
+        '''
+        
+        date_string = date_time.strftime('%Y-%m-%dT%H:%M+01')
+        
+        return date_string
+    
+    @classmethod
+    def formatDateToISO8601(cls, date_string):
+        '''
+        Formats a date string to a string complying with the ISO 8601 standard.
+        @param cls: This class to reference class properties.
+        @param date_string: The date string that will be formatted (YYYY.MM.DD-hh.mm).
+        @return: (string) the formatted date string complying with the ISO 8601 standard (YYYY-MM-DDThh:mm+01.
+        '''
+        
+        iso_8601_date = replace(date_string, '-', 'T')
+        iso_8601_date = replace(iso_8601_date, '.', '-', 2)
+        iso_8601_date = replace(iso_8601_date, '.', ':')
+        iso_8601_date = iso_8601_date + '+01'
+        
+        return iso_8601_date
     
     @classmethod
     def formatParagraphsToString(cls, paragraphs):
@@ -320,11 +349,6 @@ class Lepistant(object):
         cls.FILE_NAME_LEPORELLO = info[cls.KEY_THEATRE]
         cls.URL_PREFIX = info[cls.KEY_URL_PREFIX]
         
-    @classmethod
-    def formatDatetimeToString(cls, date_time):
-        date_string = date_time.strftime('%Y.%m.%d-%H.%M')
-        
-        return date_string
         
     
         
