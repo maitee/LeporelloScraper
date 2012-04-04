@@ -28,6 +28,11 @@ if __name__ == '__main__':
     URL_LEPORELLO = 'URL_LEPORELLO'
     URL_ROOT_PREFIX = 'URL_ROOT_PREFIX'
     URL_PLAY_PREFIX = 'URL_PLAY_PREFIX'
+    URL_STRAIGHT_THEATER = 'URL_STRAIGHT_THEATER'
+    URL_MUSICAL_THEATER = 'URL_MUSICAL_THEATER'
+    URL_DANCE_THEATER = 'URL_DANCE_THEATER'
+    URL_MOKS = 'URL_MOKS'
+    URL_JUNGE_AKTEURE = 'URL_JUNGE_AKTEURE'
     REGEXP_PLAY_LINK_TAG = 'REGEXP_PLAY_LINK_TAG'
     CSS_CLASS_CONTENT_ITEM = 'CSS_CLASS_CONTENT_ITEM'
     CSS_CLASS_PLAY_ITEM = 'CSS_CLASS_PLAY_ITEM'
@@ -54,48 +59,53 @@ if __name__ == '__main__':
                      'URL_LEPORELLO': "http://www.theaterbremen.de/de_DE/spielplan/premieren/premieren", 
                      'URL_ROOT_PREFIX': "http://www.theaterbremen.de", 
                      'URL_PLAY_PREFIX': "/de_DE/spielplan/stueck", 
+                     'URL_STRAIGHT_THEATER': "http://www.theaterbremen.de/de_DE/spielplan/premieren/schauspiel", 
+                     'URL_MUSICAL_THEATER': "http://www.theaterbremen.de/de_DE/spielplan/premieren/oper", 
+                     'URL_DANCE_THEATER': "http://www.theaterbremen.de/de_DE/spielplan/premieren/tanztheater", 
+                     'URL_MOKS': "http://www.theaterbremen.de/de_DE/spielplan/premieren/moks", 
+                     'URL_JUNGE_AKTEURE': "http://www.theaterbremen.de/de_DE/spielplan/premieren/jungeakteure", 
                      'REGEXP_PLAY_LINK_TAG': "/de_DE/spielplan/stueck/([\d]+)", 
                      'CSS_CLASS_PLAY_ITEM': "spielplan-item", 
                      'CSS_CLASS_CONTENT_ITEM': "toggleable-content-open", 
                      'PLAY_ITEMS': "List of all play item divs containing the HTML code",    # Meta information
                       }
     
-    def getPlays(leporello_info):
-        plays = []
+    
+    def getTitleFromPlayItem(play_item):
+        title = Lepistant.NOT_AVAILABLE
         
-        # Initializing the Leporello Assistent with meta information for web scraping.
-        Lepistant.setInfo(leporello_info)
+        try:
+            title_string = play_item.h5.a.string
+            title = title_string.lstrip().rstrip()
+            logger.info('Succeeded - Getting title "%s" from play_item.', title)
+        except:
+            logger.error('Failed to get title.')
         
-        leporelloFileNameOnDisk = Lepistant.createFilePath(
-                                                Lepistant.REL_PATH_DOWNLOADS_FOLDER, 
-                                                Lepistant.FILE_NAME_LEPORELLO, 
-                                                'leporello')
-        soup = Lepistant.getSoup(leporello_info[URL_LEPORELLO], 
-                                 leporelloFileNameOnDisk)
-        playItems = Lepistant.getTagsByClass(soup, 'div', 
-                                             leporello_info[CSS_CLASS_PLAY_ITEM])
-        leporello_info[PLAY_ITEMS] = playItems
+        logger.info('')
         
-        # Get only one play item for testing purposes
-#        playItem = playItems[20]    # WirAlleAnders
-#        playItem = playItems[12]    # AltArmArbeitslos
-#        play = Play(playItem)
-#        play.link = Lepistant.getURLFromTagContent(playItem)
-#        formatted_title = Lepistant.removeNonAlphanumericCharacters(play.title)
-#        play.file_path_on_disk = Lepistant.REL_PATH_PLAYS_FOLDER + formatted_title + '/'
-#        play.file_name_on_disk = Lepistant.createFilePath(
-#                                                play.file_path_on_disk, 
-#                                                play.title, 
-#                                                'html')
-#        soup = Lepistant.getSoup(play.link, play.file_name_on_disk)
-#        play.setPlayDetails(soup)
-#        plays.append(play)
+        return title
+    
+    def getSpecificTheaterPlays(leporello_info, file_name, play_type, url):
+        theater_plays = []
         
+        leporello_file_name_on_disk = Lepistant.createFilePath(
+                                               Lepistant.REL_PATH_DOWNLOADS_FOLDER, 
+                                               file_name, 
+                                               'html')
         
-        for playItem in playItems:
+        soup = Lepistant.getSoup(url, leporello_file_name_on_disk)
+        
+        theater_play_items = Lepistant.getTagsByClass(soup, 'div', leporello_info[CSS_CLASS_PLAY_ITEM])
+        
+#        for play_item in theater_play_items:
+#            title = getTitleFromPlayItem(play_item)
+#            theater_plays.append(title)
+            
+        for play_item in theater_play_items:
             logger.info('>>>>>>>>>>>>>>>>>>>>>>>> Fetching new play <<<<<<<<<<<<<<<<<<<<<<<<<')
-            play = Play(playItem)
-            play.link = Lepistant.getURLFromTagContent(playItem)
+            play = Play(play_item)
+            play.setType(play_type)
+            play.link = Lepistant.getURLFromTagContent(play_item)
             formatted_title = Lepistant.removeNonAlphanumericCharacters(play.title)
             play.file_path_on_disk = Lepistant.REL_PATH_PLAYS_FOLDER + formatted_title + '/'
             play.file_name_on_disk = Lepistant.createFilePath(
@@ -107,48 +117,64 @@ if __name__ == '__main__':
             
             logger.info('')
             
-            plays.append(play)
+            theater_plays.append(play)
+            
+        return theater_plays
+    
+    def getPlays(leporello_info):
+        plays = []
+        
+        # Initializing the Leporello Assistent with meta information for web scraping.
+#        Lepistant.setInfo(leporello_info)
+        
+        leporelloFileNameOnDisk = Lepistant.createFilePath(
+                                                Lepistant.REL_PATH_DOWNLOADS_FOLDER, 
+                                                Lepistant.FILE_NAME_LEPORELLO, 
+                                                'leporello')
+        
+        soup = Lepistant.getSoup(leporello_info[URL_LEPORELLO], 
+                                 leporelloFileNameOnDisk)
+        
+        playItems = Lepistant.getTagsByClass(soup, 'div', 
+                                             leporello_info[CSS_CLASS_PLAY_ITEM])
+        leporello_info[PLAY_ITEMS] = playItems
+        
+        # Get only one play item for testing purposes
+#        playItem = playItems[20]    # WirAlleAnders
+        playItem = playItems[12]    # AltArmArbeitslos
+        play = Play(playItem)
+        play.link = Lepistant.getURLFromTagContent(playItem)
+        formatted_title = Lepistant.removeNonAlphanumericCharacters(play.title)
+        play.file_path_on_disk = Lepistant.REL_PATH_PLAYS_FOLDER + formatted_title + '/'
+        play.file_name_on_disk = Lepistant.createFilePath(
+                                                play.file_path_on_disk, 
+                                                play.title, 
+                                                'html')
+        soup = Lepistant.getSoup(play.link, play.file_name_on_disk)
+        play.setPlayDetails(soup)
+        plays.append(play)
+        
+        
+#        for playItem in playItems:
+#            logger.info('>>>>>>>>>>>>>>>>>>>>>>>> Fetching new play <<<<<<<<<<<<<<<<<<<<<<<<<')
+#            play = Play(playItem)
+#            play.link = Lepistant.getURLFromTagContent(playItem)
+#            formatted_title = Lepistant.removeNonAlphanumericCharacters(play.title)
+#            play.file_path_on_disk = Lepistant.REL_PATH_PLAYS_FOLDER + formatted_title + '/'
+#            play.file_name_on_disk = Lepistant.createFilePath(
+#                                                play.file_path_on_disk, 
+#                                                play.title, 
+#                                                'html')
+#            soup = Lepistant.getSoup(play.link, play.file_name_on_disk)
+#            play.setPlayDetails(soup)
+#            
+#            logger.info('')
+#            
+#            plays.append(play)
         
         return plays
         
     
-    def pretty(dictionary, indent=0):
-        pprint(dictionary.__dict__)
-        for key, value in dictionary.iteritems():
-            if key != ('play_detail_soup', 'soup_details', 'data_list', 'soup'):
-                print '\t' * indent + str(key)
-                if isinstance(value, dict):
-                    pretty(value, indent + 1)
-                else:
-                    print '\t' * (indent + 1) + str(value)
-
-    
-    
-    def printPlays(plays):
-        for play in plays:
-            print('')
-            print('=======================================================================================================================================')
-            print('')
-            print('title: ' + play.title)
-            print('subtitle: ' + play.subtitle)
-            print('location: ' + play.location)
-            print('author: ' + play.author)
-            print('photos: ' + repr(play.photos))
-            print('summary: ' + play.summary[:100] + '...')
-            print('further_info: ' + play.further_info[:100] + '...')
-            print('critits: ' + play.critics[:100] + '...')
-            print('dates: ' + repr(play.dates))
-            print('producer_cast: ')
-            pprint(play.producer_cast)
-            print('artist_default_cast: ')
-            pprint(play.artist_default_cast)
-            print('sponsors: ' + repr(play.sponsors))
-            print('performances: ')
-            pprint(play.performances)
-            print('video: ' + play.video)
-            print('file_name_on_disk: ' + play.file_name_on_disk)
-        
-        
     def createJSONFile(file_name, leporello, prettify):
         file_path = Lepistant.createFilePath(Lepistant.REL_PATH_DOWNLOADS_FOLDER, file_name, 'json')
         json_file = open(file_path, 'w+')
@@ -163,7 +189,37 @@ if __name__ == '__main__':
     
     
     # Starting our leporello scraper
-    leporello['plays'] = getPlays(leporello_info)
+    
+    # Initializing the Leporello Assistent with meta information for web scraping.
+    Lepistant.setInfo(leporello_info)
+    
+#    leporello['plays'] = getPlays(leporello_info)
+    
+    plays = list()
+    
+    straight_theater_plays = getSpecificTheaterPlays(leporello_info, 'SchauspielBremen', 'straight', leporello_info[URL_STRAIGHT_THEATER])
+#    leporello['straight_theater'] = straight_theater_plays
+#    plays.append(straight_theater_plays)
+    plays.extend(straight_theater_plays)
+    
+    musical_theater_plays = getSpecificTheaterPlays(leporello_info, 'OperBremen', 'musical', leporello_info[URL_MUSICAL_THEATER])
+#    leporello['musical_theater'] = musical_theater_plays
+    plays.extend(musical_theater_plays)
+    
+    dance_theater_plays = getSpecificTheaterPlays(leporello_info, 'TanztheaterBremen', 'dance', leporello_info[URL_DANCE_THEATER])
+#    leporello['dance_theater'] = dance_theater_plays
+    plays.extend(dance_theater_plays)
+    
+    moks_plays = getSpecificTheaterPlays(leporello_info, 'MoksBremen', 'moks', leporello_info[URL_MOKS])
+#    leporello['moks'] = moks_plays
+    plays.extend(moks_plays)
+    
+    junge_akteure_plays = getSpecificTheaterPlays(leporello_info, 'JungeAkteure', 'young_actors', leporello_info[URL_JUNGE_AKTEURE])
+#    leporello['junge_akteure'] = junge_akteure_plays
+    plays.extend(junge_akteure_plays)
+    
+    leporello['plays'] = plays
+    
     
     file_name = 'leporello_test'
     createJSONFile(file_name, leporello, True)
