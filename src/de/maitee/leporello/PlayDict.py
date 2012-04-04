@@ -427,9 +427,16 @@ class Play(dict):
             logger.warning('Failed to set producer_cast for play "%s" due to: %s.', self.title, str(ierr))
         except AttributeError as attrerr:
             logger.warning('Failed to set producer_cast for play "%s" due to: %s.', self.title, str(attrerr))
-            
+       
+    def _setType(self, type):
+        self.type = self._setKey('type', type)  
+        
+        logger.info('%s - set type: %s', self.title, type)   
     
     # 'Public' methods:
+    def setType(self, type):
+        self._setType(type)
+    
     def setPlayDetails(self, soup):
         self.play_detail_soup = soup
         logger.info('')
