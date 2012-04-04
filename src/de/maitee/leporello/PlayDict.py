@@ -86,8 +86,8 @@ class Play(dict):
         self.critics = str()
         self.video = str()
         self.photos = list()
-        self.producer_cast = None                  # dict
-        self.artist_default_cast = None             # dict
+        self.producer_cast = dict()                  # dict
+        self.artist_default_cast = dict()             # dict
         self.sponsors = list()
         self.performances = dict()
         
@@ -210,7 +210,7 @@ class Play(dict):
 #                iso_8601_date = Lepistant.formatDateToISO8601(date)
                 
                 # Only use year, month and day to look up dates for performances.
-                date_lookup = date.split('T')[0] + 'T00:00+01'
+                date_lookup = date.split('T')[0] + 'T00:00'
                 
                 url = a_tuple[1]
                 file_path = Lepistant.createFilePath(self.file_path_on_disk, date, 'performance')
