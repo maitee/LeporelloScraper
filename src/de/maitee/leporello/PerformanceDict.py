@@ -34,7 +34,7 @@ class Performance(dict):
         self.location = self._setKey('location', location)
         
         self.type = None
-        self.producer_cast = None
+        self.producer_cast = dict()
         
         self.soup = None
    
@@ -95,9 +95,9 @@ class Performance(dict):
             else:
                 logger.info('Performance from %s - performance does not have a artist_cast. Therefore setting artist_cast and to an empty dictionary.', date)
         except IndexError as ierr:
-            logger.warning('Failed to set artist_cast for performance from "%s" due to: %s.', date, str(ierr))
+            logger.warning('Failed to set artist_cast for performance from "%s" due to: %s.', self.date, str(ierr))
         except AttributeError as attrerr:
-            logger.warning('Failed to set artist_cast for performance from "%s" due to: %s.', date, str(attrerr))
+            logger.warning('Failed to set artist_cast for performance from "%s" due to: %s.', self.date, str(attrerr))
         
     # 'Public' methods:
     
