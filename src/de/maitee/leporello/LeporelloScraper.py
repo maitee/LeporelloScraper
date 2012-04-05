@@ -85,6 +85,18 @@ if __name__ == '__main__':
         
         return title
     
+    def setDefaultTimeForPerformancesInPlay(play):
+        default_time = play.default_time
+        
+        for date_key in play.performances:
+            performance = play.performances[date_key]
+            performance_date = performance['date']
+            performance_time = performance_date.split('T')[1]
+            
+            if (performance_time == '00:00') and (default_time != '00:00'):
+                new_performance_date = performance_date.split('T')[0] + 'T' + default_time
+                performance['date'] = new_performance_date
+    
     def getSpecificTheaterPlays(leporello_info, file_name, play_type, url):
         theater_plays = []
         
@@ -114,6 +126,8 @@ if __name__ == '__main__':
                                                 'html')
             soup = Lepistant.getSoup(play.link, play.file_name_on_disk)
             play.setPlayDetails(soup)
+            
+            setDefaultTimeForPerformancesInPlay(play)
             
             logger.info('')
             

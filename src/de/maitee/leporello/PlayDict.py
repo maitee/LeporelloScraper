@@ -15,7 +15,6 @@ from itertools import groupby
 from LeporelloAssistant import Lepistant
 from ArtistDict import Artist
 from PerformanceDict import Performance
-from string import replace
 
 
 logger = logging.getLogger('leporello')
@@ -79,6 +78,7 @@ class Play(dict):
         self.file_path_on_disk = str()
         self.file_name_on_disk = str()
         
+        self.default_time = str()
         self.author = str()
         self.type = str()
         self.summary = str()
@@ -99,6 +99,8 @@ class Play(dict):
         
         return value
         
+    def _setDefaultTime(self, time):
+        self.default_time = self._setKey('default_time', time)
     
     def _setDates(self):
         dates = list()
@@ -210,17 +212,21 @@ class Play(dict):
 #                iso_8601_date = Lepistant.formatDateToISO8601(date)
                 
                 # Only use year, month and day to look up dates for performances.
-                date_lookup = date.split('T')[0] + 'T00:00'
+                lookup_date = date.split('T')[0] + 'T00:00'
+                lookup_time = date.split('T')[1]
+                
+                if lookup_time != '00:00':
+                    self._setDefaultTime(lookup_time)
                 
                 url = a_tuple[1]
                 file_path = Lepistant.createFilePath(self.file_path_on_disk, date, 'performance')
                 soup = Lepistant.getSoup(url, file_path)
                 
-                if date_lookup in self.performances:
+                if lookup_date in self.performances:
                     # Updating the date with a more precise date including Weekday and Time.
-                    performance = self.performances[date_lookup]
+                    performance = self.performances[lookup_date]
                     # TODO: Updating of the date should be done in a single function.
-                    performance.date = date
+                    performance.date = str()
                     performance['date'] = date
                     
                     performance.setDetails(soup, self.title)
@@ -427,7 +433,7 @@ class Play(dict):
             logger.warning('Failed to set producer_cast for play "%s" due to: %s.', self.title, str(ierr))
         except AttributeError as attrerr:
             logger.warning('Failed to set producer_cast for play "%s" due to: %s.', self.title, str(attrerr))
-       
+    
     def _setType(self, type):
         self.type = self._setKey('type', type)  
         
@@ -439,6 +445,8 @@ class Play(dict):
     
     def setPlayDetails(self, soup):
         self.play_detail_soup = soup
+        logger.info('')
+        self._setDefaultTime('00:00')
         logger.info('')
         self._setPhotos()
         logger.info('')
